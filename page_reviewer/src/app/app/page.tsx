@@ -2,7 +2,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { 
   Brain, Upload, User, Bot, X, Menu,
-  CheckCircle, Settings, MoreVertical, Send
+  CheckCircle, Settings, MoreVertical, Send, Trash
 } from 'lucide-react';
 
 interface UploadedFile {
@@ -25,13 +25,13 @@ interface ApiResponse {
   success: boolean;
   data?: string;
   error?: string;
-  analysis?: {
+  analysis?: { // <--- This now defines the shape of each item in the array
     factualInconsistencies: number;
     citationIssues: number;
     structuralRecommendations: number;
     improvements: number;
     details: string;
-  };
+  }[]; // <--- The crucial change: [] to indicate it's an array of these objects
 }
 
 const AnalysisPage: React.FC = () => {
@@ -62,10 +62,12 @@ const AnalysisPage: React.FC = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
 
+  //Function responsible for handling file uploads
   const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     if (!event.target.files) return;
     
     const files = Array.from(event.target.files);
+    console.log(files);
     const newFiles: UploadedFile[] = files.map(file => ({
       id: Date.now() + Math.random(),
       name: file.name,
@@ -86,9 +88,28 @@ const AnalysisPage: React.FC = () => {
     setMessages(prev => [...prev, fileMessage]);
   };
 
+  // Function to remove individual files
+  const handleRemoveFile = (fileId: number) => {
+    const fileToRemove = uploadedFiles.find(f => f.id === fileId);
+    setUploadedFiles(prev => prev.filter(file => file.id !== fileId));
+    
+    if (fileToRemove) {
+      const removeMessage: Message = {
+        id: Date.now(),
+        type: 'system',
+        content: `Removed file: ${fileToRemove.name}`,
+        timestamp: new Date()
+      };
+      setMessages(prev => [...prev, removeMessage]);
+    }
+  };
+
+  //Ai analyzer api (post request to server for file analysis and reviews)
   const sendToAPI = async (files: UploadedFile[]): Promise<ApiResponse> => {
     try {
       const formData = new FormData();
+
+      console.log(files)
       
       files.forEach((fileObj, index) => {
         formData.append(`file_${index}`, fileObj.file);
@@ -119,7 +140,7 @@ const AnalysisPage: React.FC = () => {
     }
   };
 
-  const sendMessage = async () => {
+  const handleRequest = async () => {
     if (!inputMessage.trim() && uploadedFiles.length === 0) return;
 
     const userMessage: Message = {
@@ -136,13 +157,14 @@ const AnalysisPage: React.FC = () => {
     try {
       if (uploadedFiles.length > 0) {
         const result = await sendToAPI(uploadedFiles);
+        console.log(result);
         
         const botResponse: Message = {
           id: Date.now() + 100,
           type: 'bot',
-          content: result.success 
-            ? `Analysis complete! Results: ${result.data || 'Analysis successful'}`
-            : `Analysis failed: ${result.error || 'Unknown error'}`,
+          content: result.success
+  ? `Analysis complete! Results: ${result.analysis?.[0]?.details || 'Analysis successful'}`
+  : `Analysis failed: ${result.error || 'Unknown error'}`,
           timestamp: new Date()
         };
         setMessages(prev => [...prev, botResponse]);
@@ -174,7 +196,7 @@ const AnalysisPage: React.FC = () => {
   const handleKeyPress = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
-      sendMessage();
+      handleRequest();
     }
   };
 
@@ -196,8 +218,8 @@ const AnalysisPage: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-white pb-24">
-      {/* Hidden File Input - THIS WAS MISSING! */}
+    <div className="min-h-screen bg-white flex flex-col">
+      {/* Hidden File Input */}
       <input
         ref={fileInputRef}
         type="file"
@@ -207,7 +229,7 @@ const AnalysisPage: React.FC = () => {
         className="hidden"
       />
 
-      {/* Header */}
+      {/* Header - Fixed with proper z-index */}
       <header 
         className={`fixed top-4 left-4 right-4 z-50 transition-all duration-500 ease-in-out ${
           isScrolled 
@@ -243,90 +265,89 @@ const AnalysisPage: React.FC = () => {
         </div>
       </header>
 
-      {/* Main Content */}
-      <div className="pt-24 px-4 py-10 overflow-y-auto min-h-screen">
-        <div className="max-w-7xl mx-auto">
-          <div className="flex flex-col gap-6 h-[calc(100vh-12rem)]">
-            <div className="lg:col-span-3 overflow-y-auto min-h-screen">
-              <div className="bg-white/80 backdrop-blur-sm rounded-2xl border border-white/50 shadow-lg h-full flex flex-col">
-                
-                {/* Chat Header */}
-                <div className="p-6 border-b border-gray-100">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center space-x-3">
-                      <div className="bg-white rounded-xl w-10 h-10 flex items-center justify-center">
-                        <Bot className="w-5 h-5 text-blue-500"/>
-                      </div>
-                      <div>
-                        <h2 className="text-lg font-semibold text-gray-900">Paper Analysis</h2>
-                        <p className="text-sm text-gray-500">Ready to analyze your documents</p>
-                      </div>
+      {/* Main Content Area - Properly calculated height */}
+      <div className="flex-1 flex flex-col pt-24 pb-4 px-4">
+        <div className="flex-1 max-w-7xl mx-auto w-full">
+          <div className="h-full flex flex-col">
+            {/* Chat Container */}
+            <div className="flex-1 bg-white/80 backdrop-blur-sm rounded-2xl border border-white/50 shadow-lg flex flex-col overflow-hidden">
+              
+              {/* Chat Header */}
+              <div className="flex-shrink-0 p-6 border-b border-gray-100">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center space-x-3">
+                    <div className="bg-white rounded-xl w-10 h-10 flex items-center justify-center">
+                      <Bot className="w-5 h-5 text-blue-500"/>
                     </div>
-                    <button className="p-2 hover:bg-gray-100 rounded-xl transition-colors">
-                      <MoreVertical className="w-5 h-5 text-gray-500" />
-                    </button>
+                    <div>
+                      <h2 className="text-lg font-semibold text-gray-900">Paper Analysis</h2>
+                      <p className="text-sm text-gray-500">Ready to analyze your documents</p>
+                    </div>
                   </div>
+                  <button className="p-2 hover:bg-gray-100 rounded-xl transition-colors">
+                    <MoreVertical className="w-5 h-5 text-gray-500" />
+                  </button>
                 </div>
+              </div>
 
-                {/* Messages Area */}
-                <div className="flex-1 overflow-y-auto p-6 space-y-4">
-                  {messages.map((message) => (
-                    <div key={message.id} className={`flex ${message.type === 'user' ? 'justify-end' : 'justify-start'}`}>
-                      <div className={`flex space-x-3 max-w-3xl ${message.type === 'user' ? 'flex-row-reverse space-x-reverse' : ''}`}>
-                        <div className={`flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center ${
-                          message.type === 'user' 
-                            ? 'bg-blue-600' 
-                            : message.type === 'system'
-                            ? 'bg-gray-400'
-                            : 'bg-white'
+              {/* Messages Area - Properly scrollable */}
+              <div className="flex-1 overflow-y-auto p-6 space-y-4 min-h-0">
+                {messages.map((message) => (
+                  <div key={message.id} className={`flex ${message.type === 'user' ? 'justify-end' : 'justify-start'}`}>
+                    <div className={`flex space-x-3 max-w-3xl ${message.type === 'user' ? 'flex-row-reverse space-x-reverse' : ''}`}>
+                      <div className={`flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center ${
+                        message.type === 'user' 
+                          ? 'bg-blue-600' 
+                          : message.type === 'system'
+                          ? 'bg-gray-400'
+                          : 'bg-white'
+                      }`}>
+                        {message.type === 'user' ? (
+                          <User className="w-4 h-4 text-white" />
+                        ) : message.type === 'system' ? (
+                          <CheckCircle className="w-4 h-4 text-white" />
+                        ) : (
+                          <Bot className="w-6 h-6 text-blue-500" />
+                        )}
+                      </div>
+                      
+                      <div className={`rounded-2xl px-4 py-3 ${
+                        message.type === 'user'
+                          ? 'bg-blue-600 text-white'
+                          : message.type === 'system'
+                          ? 'bg-gray-100 text-gray-700 text-sm italic'
+                          : 'bg-gray-100 text-gray-900'
+                      }`}>
+                        <p className="text-sm leading-relaxed whitespace-pre-line">{message.content}</p>
+                        <p className={`text-xs mt-2 ${
+                          message.type === 'user' ? 'text-blue-100' : 'text-gray-400'
                         }`}>
-                          {message.type === 'user' ? (
-                            <User className="w-4 h-4 text-white" />
-                          ) : message.type === 'system' ? (
-                            <CheckCircle className="w-4 h-4 text-white" />
-                          ) : (
-                            <Bot className="w-6 h-6 text-blue-500" />
-                          )}
-                        </div>
-                        
-                        <div className={`rounded-2xl px-4 py-3 ${
-                          message.type === 'user'
-                            ? 'bg-blue-600 text-white'
-                            : message.type === 'system'
-                            ? 'bg-gray-100 text-gray-700 text-sm italic'
-                            : 'bg-gray-100 text-gray-900'
-                        }`}>
-                          <p className="text-sm leading-relaxed whitespace-pre-line">{message.content}</p>
-                          <p className={`text-xs mt-2 ${
-                            message.type === 'user' ? 'text-blue-100' : 'text-gray-400'
-                          }`}>
-                            {message.timestamp.toLocaleTimeString()}
-                          </p>
+                          {message.timestamp.toLocaleTimeString()}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+                
+                {/* Loading indicator */}
+                {isAnalyzing && (
+                  <div className="flex justify-start">
+                    <div className="flex space-x-3">
+                      <div className="w-8 h-8 rounded-full bg-gradient-to-r from-blue-500 to-blue-600 flex items-center justify-center">
+                        <Bot className="w-4 h-4 text-white" />
+                      </div>
+                      <div className="bg-gray-100 rounded-2xl px-4 py-3">
+                        <div className="flex space-x-1">
+                          <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"></div>
+                          <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>
+                          <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
                         </div>
                       </div>
                     </div>
-                  ))}
-                  
-                  {/* Loading indicator */}
-                  {isAnalyzing && (
-                    <div className="flex justify-start">
-                      <div className="flex space-x-3">
-                        <div className="w-8 h-8 rounded-full bg-gradient-to-r from-blue-500 to-blue-600 flex items-center justify-center">
-                          <Bot className="w-4 h-4 text-white" />
-                        </div>
-                        <div className="bg-gray-100 rounded-2xl px-4 py-3">
-                          <div className="flex space-x-1">
-                            <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"></div>
-                            <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>
-                            <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  )}
-                  
-                  <div ref={messagesEndRef} />
-                </div>
+                  </div>
+                )}
+                
+                <div ref={messagesEndRef} />
               </div>
             </div>
           </div>
@@ -334,18 +355,28 @@ const AnalysisPage: React.FC = () => {
       </div>
 
       {/* Fixed Bottom Input Section */}
-      <div className="fixed bottom-0 left-0 right-0 z-40 bg-white/95 backdrop-blur-md border-t border-gray-200 p-4">
+      <div className="flex-shrink-0 bg-white/95 backdrop-blur-md border-t border-gray-200 p-4">
         <div className="max-w-7xl mx-auto flex flex-col space-y-3">
           
           {/* Show uploaded files if any */}
           {uploadedFiles.length > 0 && (
             <div className="bg-blue-50 rounded-xl p-3">
-              <p className="text-sm font-medium text-blue-900 mb-2">Uploaded Files:</p>
-              <div className="space-y-1">
+              <p className="text-sm font-medium text-blue-900 mb-2">Uploaded Files ({uploadedFiles.length}):</p>
+              <div className="space-y-2">
                 {uploadedFiles.map((file) => (
-                  <div key={file.id} className="flex items-center justify-between text-xs text-blue-800">
-                    <span className="truncate max-w-xs">{file.name}</span>
-                    <span>{formatFileSize(file.size)}</span>
+                  <div key={file.id} className="flex items-center justify-between bg-white rounded-lg p-2 group hover:bg-blue-50 transition-colors border border-red-500">
+                    <div className="flex items-center space-x-2 flex-1 min-w-0">
+                      <div className="w-2 h-2 bg-blue-500 rounded-full flex-shrink-0"></div>
+                      <span className="text-xs text-blue-800 truncate font-medium">{file.name}</span>
+                      <span className="text-xs text-blue-600 flex-shrink-0">({formatFileSize(file.size)})</span>
+                    </div>
+                    <button
+                      onClick={() => handleRemoveFile(file.id)}
+                      className="ml-2 p-1 rounded-full hover:bg-red-100 transition-colors opacity-0 group-hover:opacity-100"
+                      title="Remove file"
+                    >
+                      <Trash size={18} className="w-3 h-3 text-red-500" />
+                    </button>
                   </div>
                 ))}
               </div>
@@ -377,7 +408,7 @@ const AnalysisPage: React.FC = () => {
               />
             </div>
             <button
-              onClick={sendMessage}
+              onClick={handleRequest}
               disabled={isAnalyzing || (!inputMessage.trim() && uploadedFiles.length === 0)}
               className={`p-2 rounded-xl transition-all duration-200 ${
                 isAnalyzing || (!inputMessage.trim() && uploadedFiles.length === 0)
