@@ -209,7 +209,7 @@ const AnimatedHeader = () => {
                   animation: 'fadeInUp 1s ease-out 0.4s both'
                 }}
               >
-                Analyze White Papers
+                Analyze Research Papers
                 <span className="bg-gradient-to-r from-blue-600 to-blue-800 bg-clip-text text-transparent block mt-4">
                   For Errors & Insights
                 </span>
