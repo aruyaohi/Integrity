@@ -230,9 +230,9 @@ const AnalysisPage: React.FC = () => {
             : 'bg-white/80 backdrop-blur-md border border-blue-50/30 py-4'
         } rounded-2xl`}
       >
-        <div className="w-full mx-auto px-6 lg:px-8">
+        <div className="w-full mx-auto  lg:px-8">
           <div className="flex justify-between items-center">
-            <div className="flex items-center space-x-3">
+            <div className="flex items-center space-x-1">
               <div className="bg-white rounded-xl w-10 h-10 flex items-center justify-center">
                 <Brain className="w-6 h-6 text-blue-500" />
               </div>
@@ -248,12 +248,12 @@ const AnalysisPage: React.FC = () => {
               </button>
             </div>
 
-            <button
+            {/* <button
               onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
               className="lg:hidden p-2 rounded-xl hover:bg-blue-50 transition-colors"
             >
-              {isMobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6 text-gray-900" />}
-            </button>
+              {isMobileMenuOpen ? <X className="w-6 h-6 text-gray-900" /> : <Menu className="w-6 h-6 text-gray-900" />}
+            </button> */}
           </div>
         </div>
       </header>
