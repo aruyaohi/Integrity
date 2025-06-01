@@ -1,10 +1,12 @@
 'use client'
 import React, { useState, useEffect } from 'react';
-import { Menu, X, ArrowRight,Brain,Twitter,Linkedin,Mail,Github } from 'lucide-react';
+import { Menu, X, ArrowRight,Brain,Twitter,Linkedin,Mail,Github,ScrollIcon } from 'lucide-react';
+import { useRouter } from 'next/navigation';
 
 const AnimatedHeader = () => {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+
 
   useEffect(() => {
     const handleScroll = () => {
@@ -16,9 +18,28 @@ const AnimatedHeader = () => {
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
+  // type navItem =  {
+  //   name: string,
+  //   icon: React.ComponentType<{ className?: string }>;
+  // }
+
+  const mobileNav = [
+    {name: 'Gihub', icon: Github, href: '/'},
+    {name: 'Docs', icon: ScrollIcon, href: '/'}
+  ]
+
+   const socialLinks = [
+    { icon: Twitter, href: 'https://twitter.com', label: 'Twitter' },
+    { icon: Github, href: 'https://github.com', label: 'GitHub' },
+    { icon: Linkedin, href: 'https://linkedin.com', label: 'LinkedIn' },
+    { icon: Mail, href: 'mailto:contact@peerreview.com', label: 'Email' }
+  ];
+
   const toggleMobileMenu = () => {
     setIsMobileMenuOpen(!isMobileMenuOpen);
   };
+
+  const router = useRouter();
 
   return (
     <>
@@ -86,23 +107,28 @@ const AnimatedHeader = () => {
               </div>
 
               {/* Desktop Navigation */}
-              {/* <nav className="hidden lg:flex items-center space-x-8">
-                {['Features', 'Pricing', 'Docs', 'Company'].map((item) => (
-                  <a
-                    key={item}
-                    href="#"
-                    className="text-gray-600 hover:text-blue-600 transition-all duration-300 font-medium hover:scale-105 relative group"
-                  >
-                    {item}
-                    <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-blue-600 transition-all duration-300 group-hover:w-full"></span>
-                  </a>
+              <nav className="hidden lg:flex items-center space-x-8">
+                {mobileNav.map((item,index) => (
+                  <div key={item.name} className='flex justify-start gap-3 items-center hover:translate-x-2 transform hover:text-blue-500  transition-all duration-300'>
+                    <item.icon size={18} className='text-gray-900'/>
+                    <a
+                      key={item.name}
+                      href={item.href}
+                      className={`text-gray-600 font-medium  ${
+                        isMobileMenuOpen ? 'animate-slideIn' : ''
+                      }`}
+                      style={{ animationDelay: `${index * 100}ms` }}
+                    >
+                      {item.name}
+                    </a>
+                    </div>
                 ))}
-              </nav> */}
+              </nav>
 
               {/* Desktop CTA Buttons */}
               <div className="hidden lg:flex items-center space-x-4">
                 <button 
-                  onClick={() => {location.href = "/app"}}
+                  onClick={() => {router.push('/app')}}
                   className={`bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-semibold transition-all duration-300 transform hover:scale-105 hover:shadow-lg ${
                     isScrolled ? 'px-4 py-2 text-sm' : 'px-6 py-3 text-base'
                   }`}
@@ -132,34 +158,22 @@ const AnimatedHeader = () => {
             >
               <div className="border-t border-blue-100 pt-6">
                 <nav className="flex flex-col space-y-4">
-                  {['Features', 'Pricing', 'Docs', 'Company'].map((item, index) => (
+                  {mobileNav.map((item, index) => (
+                    <div key={item.name} className='flex justify-start gap-3 items-center'>
+                    <item.icon size={18} className='text-gray-900'/>
                     <a
-                      key={item}
+                      key={item.name}
                       href="#"
                       className={`text-gray-600 hover:text-purple-600 transition-all duration-300 font-medium hover:translate-x-2 transform ${
                         isMobileMenuOpen ? 'animate-slideIn' : ''
                       }`}
                       style={{ animationDelay: `${index * 100}ms` }}
                     >
-                      {item}
+                      {item.name}
                     </a>
+                    </div>
                   ))}
                 </nav>
-               
-              {/* CTA Buttons */}
-              <div 
-                className="flex justify-center items-center mb-20"
-                style={{
-                  animation: 'fadeInUp 1s ease-out 0.8s both'
-                }}
-              >
-                <button 
-                onClick={() => {location.href = "/app"}}
-                className="group bg-blue-600 hover:bg-blue-700 text-white px-10 py-5 rounded-2xl text-xl font-semibold transition-all duration-300 transform hover:scale-105 hover:shadow-2xl flex items-center shadow-lg">
-                  Try Demo
-                  <ArrowRight className="w-6 h-6 ml-3 group-hover:translate-x-1 transition-transform duration-300" />
-                </button>
-              </div>
               </div>
             </div>
           </div>
@@ -211,7 +225,9 @@ const AnimatedHeader = () => {
                   animation: 'fadeInUp 1s ease-out 0.8s both'
                 }}
               >
-                <button className="group bg-blue-600 hover:bg-blue-700 text-white px-10 py-5 rounded-2xl text-xl font-semibold transition-all duration-300 transform hover:scale-105 hover:shadow-2xl flex items-center shadow-lg">
+                <button 
+                onClick={() => {router.push('/app')}}
+                className="group bg-blue-600 hover:bg-blue-700 text-white px-10 py-5 rounded-2xl text-xl font-semibold transition-all duration-300 transform hover:scale-105 hover:shadow-2xl flex items-center shadow-lg">
                   Try Demo
                   <ArrowRight className="w-6 h-6 ml-3 group-hover:translate-x-1 transition-transform duration-300" />
                 </button>
@@ -261,14 +277,14 @@ const AnimatedHeader = () => {
             </div>
           </section>
         </div>
-         <footer className="bg-white border-t border-gray-200">
+        <footer className="bg-white border-t border-gray-200 relative z-10">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
           <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
             {/* Company Info */}
             <div className="col-span-1 md:col-span-2">
               <div className="flex items-center space-x-3 mb-4">
-                <div className="bg-blue-600 rounded-xl w-10 h-10 flex items-center justify-center">
-                  <Brain className="w-6 h-6 text-white" />
+                <div className="bg-white rounded-xl w-10 h-10 flex items-center justify-center">
+                  <Brain className="w-6 h-6 text-blue-500" />
                 </div>
                 <span className="text-xl font-bold text-gray-900">PeerReview</span>
               </div>
@@ -277,71 +293,41 @@ const AnimatedHeader = () => {
                 detect errors, inconsistencies, and gain valuable insights from their white papers.
               </p>
               <div className="flex space-x-4">
-                <a href="#" className="text-gray-400 hover:text-blue-600 transition-colors duration-300">
-                  <Twitter className="w-5 h-5" />
-                </a>
-                <a href="#" className="text-gray-400 hover:text-blue-600 transition-colors duration-300">
-                  <Github className="w-5 h-5" />
-                </a>
-                <a href="#" className="text-gray-400 hover:text-blue-600 transition-colors duration-300">
-                  <Linkedin className="w-5 h-5" />
-                </a>
-                <a href="#" className="text-gray-400 hover:text-blue-600 transition-colors duration-300">
-                  <Mail className="w-5 h-5" />
-                </a>
+                {socialLinks.map((social) => {
+                  const IconComponent = social.icon;
+                  return (
+                    <a 
+                      key={social.label}
+                      href={social.href} 
+                      className="text-gray-900 hover:text-blue-600 transition-colors duration-300 cursor-pointer"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      aria-label={social.label}
+                    >
+                      <IconComponent className="w-5 h-5" />
+                    </a>
+                  );
+                })}
               </div>
             </div>
 
             {/* Product Links */}
             <div>
-              <h3 className="text-sm font-semibold text-gray-900 uppercase tracking-wider mb-4">
+              <h3 className="text-sm font-bold text-gray-900 uppercase tracking-wider mb-4">
                 Product
               </h3>
               <ul className="space-y-3">
-                {['Features', 'Pricing', 'API Docs', 'Integrations', 'Security'].map((item) => (
-                  <li key={item}>
-                    <a href="#" className="text-gray-600 hover:text-blue-600 transition-colors duration-300">
-                      {item}
+                {mobileNav.map((item) => (
+                  <li key={item.name}>
+                    <a 
+                      href={item.href} 
+                      className="text-gray-900 hover:text-blue-600 transition-colors duration-300 cursor-pointer"
+                    >
+                      {item.name}
                     </a>
                   </li>
                 ))}
               </ul>
-            </div>
-
-            {/* Company Links */}
-            <div>
-              <h3 className="text-sm font-semibold text-gray-900 uppercase tracking-wider mb-4">
-                Company
-              </h3>
-              <ul className="space-y-3">
-                {['About', 'Blog', 'Careers', 'Contact', 'Press'].map((item) => (
-                  <li key={item}>
-                    <a href="#" className="text-gray-600 hover:text-blue-600 transition-colors duration-300">
-                      {item}
-                    </a>
-                  </li>
-                ))}
-              </ul>
-            </div>
-          </div>
-
-          {/* Bottom Section */}
-          <div className="border-t border-gray-200 mt-12 pt-8">
-            <div className="flex flex-col md:flex-row justify-between items-center">
-              <p className="text-gray-500 text-sm">
-                © 2025 PeerReview. All rights reserved.
-              </p>
-              <div className="flex space-x-6 mt-4 md:mt-0">
-                <a href="#" className="text-gray-500 hover:text-blue-600 text-sm transition-colors duration-300">
-                  Privacy Policy
-                </a>
-                <a href="#" className="text-gray-500 hover:text-blue-600 text-sm transition-colors duration-300">
-                  Terms of Service
-                </a>
-                <a href="#" className="text-gray-500 hover:text-blue-600 text-sm transition-colors duration-300">
-                  Cookie Policy
-                </a>
-              </div>
             </div>
           </div>
         </div>
