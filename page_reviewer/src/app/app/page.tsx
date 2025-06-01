@@ -371,7 +371,7 @@ const AnalysisPage: React.FC = () => {
                 onChange={handleInputChange}
                 onKeyPress={handleKeyPress}
                 placeholder="Ask me to analyze your documents, check for errors, or any other questions..."
-                className="w-full resize-none border-0 outline-none text-sm leading-6 max-h-[120px] min-h-[24px] placeholder-gray-400"
+                className="w-full resize-none border-0 outline-none text-sm leading-6 max-h-[120px] min-h-[24px] placeholder-gray-400 text-gray-900"
                 rows={1}
                 disabled={isAnalyzing}
               />
