@@ -1,33 +1,16 @@
-// import dotenv from 'dotenv';
-// dotenv.config({path: '.env.local'});
-// import { GoogleGenAI } from "@google/genai";
-
-// // Load the API key
-// // const apiKey = process.env.API_KEY;
-
-// // if (!apiKey) {
-// //   throw new Error("AI_API_KEY not set in environment variables");
-// // }
-
-
-// const ai = new GoogleGenAI({ apiKey: 'AIzaSyBkSCdiWEURaKUx8ty1DGR6Gi5zs8cR4Cs' });
-
-// async function main() {
-//   const response = await ai.models.generateContent({
-//     model: "gemini-2.0-flash",
-//     contents: "Explain how AI works in a few words",
-//   });
-//   console.log(response.text);
-// }
-
-// main();
-
 
 import { NextRequest, NextResponse } from 'next/server';
 import { GoogleGenerativeAI } from '@google/generative-ai';
 import pdfParse from 'pdf-parse'
-// Initialize Google AI
-const genAI = new GoogleGenerativeAI('AIzaSyBkSCdiWEURaKUx8ty1DGR6Gi5zs8cR4Cs');
+
+
+//process api key from environment variable
+const apikey = process.env.NEXT_PUBLIC_API_KEY
+if(!apikey){
+   throw new Error('Gemini API key is missing. Please set NEXT_PUBLIC_API_KEY in your .env.local file.');
+}
+const genAI = new GoogleGenerativeAI(apikey);
+console.log("next public api ran", process.env.NEXT_PUBLIC_API_KEY)
 
 interface AnalysisResult {
   success: boolean;
