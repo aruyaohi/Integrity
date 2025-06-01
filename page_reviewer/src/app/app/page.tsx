@@ -173,8 +173,8 @@ const AnalysisPage: React.FC = () => {
         <div className="w-full mx-auto px-6 lg:px-8">
           <div className="flex justify-between items-center">
             <div className="flex items-center space-x-3">
-              <div className="bg-blue-600 rounded-xl w-10 h-10 flex items-center justify-center">
-                <Brain className="w-6 h-6 text-white" />
+              <div className="bg-white rounded-xl w-10 h-10 flex items-center justify-center">
+                <Brain className="w-6 h-6 text-blue-500" />
               </div>
               <span className="text-xl font-bold text-gray-900">PeerReview</span>
             </div>
@@ -239,11 +239,11 @@ const AnalysisPage: React.FC = () => {
                 <div className="p-6 border-b border-gray-100">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center space-x-3">
-                      <div className="bg-gradient-to-r from-blue-500 to-blue-600 rounded-xl w-10 h-10 flex items-center justify-center">
-                        <Bot className="w-5 h-5 text-white"/>
+                      <div className="bg-white rounded-xl w-10 h-10 flex items-center justify-center">
+                        <Brain className="w-5 h-5 text-blue-500"/>
                       </div>
                       <div>
-                        <h2 className="text-lg font-semibold text-gray-900">PeerReview Agent Analyzer</h2>
+                        <h2 className="text-lg font-semibold text-gray-900">Agent Analysis</h2>
                         <p className="text-sm text-gray-500">Ready to analyze your documents</p>
                       </div>
                     </div>
@@ -264,14 +264,15 @@ const AnalysisPage: React.FC = () => {
                             ? 'bg-blue-600' 
                             : message.type === 'system'
                             ? 'bg-gray-400'
-                            : 'bg-gradient-to-r from-blue-500 to-blue-600'
+                            : 'bg-white'
+            
                         }`}>
                           {message.type === 'user' ? (
                             <User className="w-4 h-4 text-white" />
                           ) : message.type === 'system' ? (
                             <CheckCircle className="w-4 h-4 text-white" />
                           ) : (
-                            <Bot className="w-4 h-4 text-white" />
+                            <Brain className="w-6 h-6 text-blue-500" />
                           )}
                         </div>
                         
@@ -335,6 +336,10 @@ const AnalysisPage: React.FC = () => {
             <Play className="w-6 h-6" />
             <span>{isAnalyzing ? 'Analyzing...' : 'Analyze Documents'}</span>
           </button>
+          <div className="flex justify-center items-center py-4">          
+            <span className='text-gray-700 font-medium'>PeerReview version 1.0.0</span>
+          </div>
+
         </div>
       </div>
     </div>
