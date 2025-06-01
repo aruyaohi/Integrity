@@ -11,6 +11,7 @@ interface UploadedFile {
   size: number;
   type: string;
   uploadedAt: Date;
+  file: File; 
 }
 
 interface Message {
@@ -19,6 +20,20 @@ interface Message {
   content: string;
   timestamp: Date;
 }
+
+interface ApiResponse {
+  success: boolean;
+  data?: string;
+  error?: string;
+  analysis?: {
+    factualInconsistencies: number;
+    citationIssues: number;
+    structuralRecommendations: number;
+    improvements: number;
+    details: string;
+  };
+}
+
 
 const AnalysisPage: React.FC = () => {
   const [isScrolled, setIsScrolled] = useState<boolean>(false);
@@ -55,7 +70,8 @@ const AnalysisPage: React.FC = () => {
       name: file.name,
       size: file.size,
       type: file.type,
-      uploadedAt: new Date()
+      uploadedAt: new Date(),
+      file: file
     }));
     
     setUploadedFiles(prev => [...prev, ...newFiles]);
@@ -68,6 +84,44 @@ const AnalysisPage: React.FC = () => {
       timestamp: new Date()
     };
     setMessages(prev => [...prev, fileMessage]);
+  };
+
+  const sendToAPI = async (files: UploadedFile[]): Promise<ApiResponse> => {
+    try {
+      const formData = new FormData();
+      
+      // Add files to FormData
+      files.forEach((fileObj, index) => {
+        formData.append(`file_${index}`, fileObj.file);
+      });
+      
+      // Add metadata
+      formData.append('fileCount', files.length.toString());
+      formData.append('fileNames', JSON.stringify(files.map(f => f.name)));
+      formData.append('analysisType', 'comprehensive');
+      
+      const response = await fetch('/api/analyzer', {
+        method: 'POST',
+        body: formData,
+        headers: {
+          // Don't set Content-Type header - let the browser set it with boundary for multipart/form-data
+        }
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const result: ApiResponse = await response.json();
+      return result;
+      
+    } catch (error) {
+      console.error('API Error:', error);
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : 'Unknown error occurred'
+      };
+    }
   };
 
 
@@ -92,6 +146,12 @@ const AnalysisPage: React.FC = () => {
 
     setMessages(prev => [...prev, userMessage]);
     setIsAnalyzing(true);
+
+    try {
+      await sendToAPI(uploadedFiles)
+    } catch (error) {
+      console.log(error)
+    }
 
     // Simulate AI analysis with multiple stages
     setTimeout(() => {
@@ -199,15 +259,15 @@ const AnalysisPage: React.FC = () => {
       </header>
 
       {/* Main Content */}
-      <div className="pt-24 px-4">
+      <div className="pt-24 px-4 py-10 overflow-y-auto min-h-screen">
         <div className="max-w-7xl mx-auto">
           <div className="flex flex-col gap-6 h-[calc(100vh-12rem)]">
             
             {/* Sidebar - File Management */}
             <div className="lg:col-span-1">
               <div className="bg-white/80 backdrop-blur-sm rounded-2xl border border-white/50 shadow-lg h-full flex flex-col">
-                <div className="p-6 border-b border-gray-100">
-                  <h3 className="text-lg font-semibold text-gray-900 mb-4">Documents</h3>
+                <div className="p-3 border-b border-gray-100">
+                  {/* <h3 className="text-lg font-semibold text-gray-900 mb-4">Documents</h3> */}
                   
                   {/* Upload Area */}
                   <div 
@@ -232,7 +292,7 @@ const AnalysisPage: React.FC = () => {
             </div>
 
             {/* Main Chat Area */}
-            <div className="lg:col-span-3 overflow-y-auto">
+            <div className="lg:col-span-3 overflow-y-auto min-h-screen">
               <div className="bg-white/80 backdrop-blur-sm rounded-2xl border border-white/50 shadow-lg h-full flex flex-col">
                 
                 {/* Chat Header */}
@@ -240,10 +300,10 @@ const AnalysisPage: React.FC = () => {
                   <div className="flex items-center justify-between">
                     <div className="flex items-center space-x-3">
                       <div className="bg-white rounded-xl w-10 h-10 flex items-center justify-center">
-                        <Brain className="w-5 h-5 text-blue-500"/>
+                        <Bot className="w-5 h-5 text-blue-500"/>
                       </div>
                       <div>
-                        <h2 className="text-lg font-semibold text-gray-900">Agent Analysis</h2>
+                        <h2 className="text-lg font-semibold text-gray-900">Paper Analysis</h2>
                         <p className="text-sm text-gray-500">Ready to analyze your documents</p>
                       </div>
                     </div>
@@ -272,7 +332,7 @@ const AnalysisPage: React.FC = () => {
                           ) : message.type === 'system' ? (
                             <CheckCircle className="w-4 h-4 text-white" />
                           ) : (
-                            <Brain className="w-6 h-6 text-blue-500" />
+                            <Bot className="w-6 h-6 text-blue-500" />
                           )}
                         </div>
                         
@@ -334,12 +394,8 @@ const AnalysisPage: React.FC = () => {
             }`}
           >
             <Play className="w-6 h-6" />
-            <span>{isAnalyzing ? 'Analyzing...' : 'Analyze Documents'}</span>
+            <span className='text-sm'>{isAnalyzing ? 'Analyzing...' : 'Begin Analysis'}</span>
           </button>
-          <div className="flex justify-center items-center py-4">          
-            <span className='text-gray-700 font-medium'>PeerReview version 1.0.0</span>
-          </div>
-
         </div>
       </div>
     </div>

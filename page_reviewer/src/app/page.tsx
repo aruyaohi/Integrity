@@ -1,11 +1,12 @@
 'use client'
 import React, { useState, useEffect } from 'react';
-import { Menu, X, ArrowRight,Brain,Twitter,Linkedin,Mail,Github,ScrollIcon } from 'lucide-react';
+import { Menu, X, ArrowRight,Brain,Twitter,Linkedin,Mail,Github,ScrollIcon, LoaderCircle } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 
 const AnimatedHeader = () => {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [isLoading,setIsLoading] = useState<boolean>(false);
 
 
   useEffect(() => {
@@ -17,6 +18,13 @@ const AnimatedHeader = () => {
     window.addEventListener('scroll', handleScroll);
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
+
+  const handleNavigation = (page:string)  =>{
+    setIsLoading(true)
+    setTimeout(() =>{
+      router.push(page)
+    },3000) 
+  }
 
   // type navItem =  {
   //   name: string,
@@ -128,7 +136,7 @@ const AnimatedHeader = () => {
               {/* Desktop CTA Buttons */}
               <div className="hidden lg:flex items-center space-x-4">
                 <button 
-                  onClick={() => {router.push('/app')}}
+                  onClick={() => handleNavigation('/app')}
                   className={`bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-semibold transition-all duration-300 transform hover:scale-105 hover:shadow-lg ${
                     isScrolled ? 'px-4 py-2 text-sm' : 'px-6 py-3 text-base'
                   }`}
@@ -226,10 +234,10 @@ const AnimatedHeader = () => {
                 }}
               >
                 <button 
-                onClick={() => {router.push('/app')}}
+                onClick={() => handleNavigation('/app')}
                 className="group bg-blue-600 hover:bg-blue-700 text-white px-10 py-5 rounded-2xl text-xl font-semibold transition-all duration-300 transform hover:scale-105 hover:shadow-2xl flex items-center shadow-lg">
-                  Try Demo
-                  <ArrowRight className="w-6 h-6 ml-3 group-hover:translate-x-1 transition-transform duration-300" />
+                 {isLoading? <LoaderCircle size={20} className='text-white animate-spin'/>: <>Try Demo
+                  <ArrowRight className="w-6 h-6 ml-3 group-hover:translate-x-1 transition-transform duration-300" /> </>}
                 </button>
               </div>
 
