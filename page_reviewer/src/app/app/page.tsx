@@ -1,8 +1,8 @@
 'use client'
 import React, { useState, useRef, useEffect } from 'react';
 import { 
-  Brain, Upload, User, Bot, 
-  CheckCircle, Settings, MoreVertical, Play
+  Brain, Upload, User, Bot, X, Menu,
+  CheckCircle, Settings, MoreVertical, Send
 } from 'lucide-react';
 
 interface UploadedFile {
@@ -34,12 +34,10 @@ interface ApiResponse {
   };
 }
 
-
 const AnalysisPage: React.FC = () => {
   const [isScrolled, setIsScrolled] = useState<boolean>(false);
-  // const [isMobileMenuOpen, setIsMobileMenuOpen] = useState<boolean>(false);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState<boolean>(false);
   const [uploadedFiles, setUploadedFiles] = useState<UploadedFile[]>([]);
-  //default bot placeholder message
   const [messages, setMessages] = useState<Message[]>([
     {
       id: 1,
@@ -49,11 +47,11 @@ const AnalysisPage: React.FC = () => {
     }
   ]);
   const [isAnalyzing, setIsAnalyzing] = useState<boolean>(false);
+  const [inputMessage, setInputMessage] = useState<string>('');
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const inputRef = useRef<HTMLTextAreaElement>(null);
 
-
-  //use effect for handling scrolling
   useEffect(() => {
     const handleScroll = () => setIsScrolled(window.scrollY > 50);
     window.addEventListener('scroll', handleScroll);
@@ -63,9 +61,6 @@ const AnalysisPage: React.FC = () => {
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
-
-
-
 
   const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     if (!event.target.files) return;
@@ -82,7 +77,6 @@ const AnalysisPage: React.FC = () => {
     
     setUploadedFiles(prev => [...prev, ...newFiles]);
     
-    // Add system message about file upload
     const fileMessage: Message = {
       id: Date.now(),
       type: 'system',
@@ -96,12 +90,10 @@ const AnalysisPage: React.FC = () => {
     try {
       const formData = new FormData();
       
-      // Add files to FormData
       files.forEach((fileObj, index) => {
         formData.append(`file_${index}`, fileObj.file);
       });
       
-      // Add metadata
       formData.append('fileCount', files.length.toString());
       formData.append('fileNames', JSON.stringify(files.map(f => f.name)));
       formData.append('analysisType', 'comprehensive');
@@ -109,9 +101,6 @@ const AnalysisPage: React.FC = () => {
       const response = await fetch('/api/analyzer', {
         method: 'POST',
         body: formData,
-        headers: {
-          // Don't set Content-Type header - let the browser set it with boundary for multipart/form-data
-        }
       });
 
       if (!response.ok) {
@@ -130,104 +119,94 @@ const AnalysisPage: React.FC = () => {
     }
   };
 
-
-  const startAnalysis = async () => {
-    if (uploadedFiles.length === 0) {
-      const errorMessage: Message = {
-        id: Date.now(),
-        type: 'system',
-        content: 'Please upload at least one document before starting the analysis.',
-        timestamp: new Date()
-      };
-      setMessages(prev => [...prev, errorMessage]);
-      return;
-    }
+  const sendMessage = async () => {
+    if (!inputMessage.trim() && uploadedFiles.length === 0) return;
 
     const userMessage: Message = {
       id: Date.now(),
       type: 'user',
-      content: 'Starting comprehensive document analysis...',
+      content: inputMessage.trim() || 'Analyze uploaded documents',
       timestamp: new Date()
     };
 
     setMessages(prev => [...prev, userMessage]);
+    setInputMessage('');
     setIsAnalyzing(true);
 
     try {
-      await sendToAPI(uploadedFiles)
-    } catch (error) {
-      console.log(error)
-    }
-
-    // Simulate AI analysis with multiple stages
-    setTimeout(() => {
-      const analysisStages = [
-        'Scanning documents for structural issues...',
-        'Checking citations and references...',
-        'Analyzing content for factual inconsistencies...',
-        'Generating comprehensive analysis report...'
-      ];
-
-      analysisStages.forEach((stage, index) => {
-        setTimeout(() => {
-          const stageMessage: Message = {
-            id: Date.now() + index,
-            type: 'system',
-            content: stage,
-            timestamp: new Date()
-          };
-          setMessages(prev => [...prev, stageMessage]);
-        }, index * 1000);
-      });
-
-      // Final analysis result
-      setTimeout(() => {
+      if (uploadedFiles.length > 0) {
+        const result = await sendToAPI(uploadedFiles);
+        
         const botResponse: Message = {
           id: Date.now() + 100,
           type: 'bot',
-          content: `Analysis complete! I've reviewed ${uploadedFiles.length} document(s) and found:\n\n✅ 3 potential factual inconsistencies\n✅ 2 citation formatting issues\n✅ 1 structural recommendation\n✅ 4 areas for improvement\n\nWould you like me to provide detailed findings for any specific category?`,
+          content: result.success 
+            ? `Analysis complete! Results: ${result.data || 'Analysis successful'}`
+            : `Analysis failed: ${result.error || 'Unknown error'}`,
           timestamp: new Date()
         };
         setMessages(prev => [...prev, botResponse]);
-        setIsAnalyzing(false);
-      }, analysisStages.length * 1000 + 1000);
-    }, 500);
+      } else {
+        // Handle text-only messages
+        const botResponse: Message = {
+          id: Date.now() + 100,
+          type: 'bot',
+          content: "I understand your request. Please upload some documents so I can analyze them for you.",
+          timestamp: new Date()
+        };
+        setMessages(prev => [...prev, botResponse]);
+      }
+      
+    } catch (error) {
+      console.log(error);
+      const errorResponse: Message = {
+        id: Date.now() + 100,
+        type: 'bot',
+        content: 'Sorry, there was an error processing your request. Please try again.',
+        timestamp: new Date()
+      };
+      setMessages(prev => [...prev, errorResponse]);
+    } finally {
+      setIsAnalyzing(false);
+    }
   };
 
-  // const formatFileSize = (bytes: number): string => {
-  //   if (bytes === 0) return '0 Bytes';
-  //   const k = 1024;
-  //   const sizes = ['Bytes', 'KB', 'MB', 'GB'];
-  //   const i = Math.floor(Math.log(bytes) / Math.log(k));
-  //   return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
-  // };
+  const handleKeyPress = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      sendMessage();
+    }
+  };
 
-  // const handleQuickAction = (action: string) => {
-  //   const actionMessage: Message = {
-  //     id: Date.now(),
-  //     type: 'user',
-  //     content: action,
-  //     timestamp: new Date()
-  //   };
+  const handleInputChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    setInputMessage(e.target.value);
+    // Auto-resize textarea
+    if (inputRef.current) {
+      inputRef.current.style.height = 'auto';
+      inputRef.current.style.height = Math.min(inputRef.current.scrollHeight, 120) + 'px';
+    }
+  };
 
-  //   setMessages(prev => [...prev, actionMessage]);
-  //   setIsAnalyzing(true);
-
-  //   // Simulate specific analysis
-  //   setTimeout(() => {
-  //     const botResponse: Message = {
-  //       id: Date.now() + 1,
-  //       type: 'bot',
-  //       content: `I'll focus on: "${action}". Analyzing your documents now for this specific aspect...`,
-  //       timestamp: new Date()
-  //     };
-  //     setMessages(prev => [...prev, botResponse]);
-  //     setIsAnalyzing(false);
-  //   }, 1500);
-  // };
+  const formatFileSize = (bytes: number): string => {
+    if (bytes === 0) return '0 Bytes';
+    const k = 1024;
+    const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+  };
 
   return (
     <div className="min-h-screen bg-white pb-24">
+      {/* Hidden File Input - THIS WAS MISSING! */}
+      <input
+        ref={fileInputRef}
+        type="file"
+        onChange={handleFileUpload}
+        accept=".pdf,.doc,.docx"
+        multiple
+        className="hidden"
+      />
+
       {/* Header */}
       <header 
         className={`fixed top-4 left-4 right-4 z-50 transition-all duration-500 ease-in-out ${
@@ -236,7 +215,7 @@ const AnalysisPage: React.FC = () => {
             : 'bg-white/80 backdrop-blur-md border border-blue-50/30 py-4'
         } rounded-2xl`}
       >
-        <div className="w-full mx-auto  lg:px-8">
+        <div className="w-full mx-auto lg:px-8">
           <div className="flex justify-between items-center">
             <div className="flex items-center space-x-1">
               <div className="bg-white rounded-xl w-10 h-10 flex items-center justify-center">
@@ -254,12 +233,12 @@ const AnalysisPage: React.FC = () => {
               </button>
             </div>
 
-            {/* <button
+            <button
               onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
               className="lg:hidden p-2 rounded-xl hover:bg-blue-50 transition-colors"
             >
               {isMobileMenuOpen ? <X className="w-6 h-6 text-gray-900" /> : <Menu className="w-6 h-6 text-gray-900" />}
-            </button> */}
+            </button>
           </div>
         </div>
       </header>
@@ -268,36 +247,6 @@ const AnalysisPage: React.FC = () => {
       <div className="pt-24 px-4 py-10 overflow-y-auto min-h-screen">
         <div className="max-w-7xl mx-auto">
           <div className="flex flex-col gap-6 h-[calc(100vh-12rem)]">
-            
-            {/* Sidebar - File Management */}
-            <div className="lg:col-span-1">
-              <div className="bg-white/80 backdrop-blur-sm rounded-2xl border border-white/50 shadow-lg h-full flex flex-col">
-                <div className="p-3 border-b border-gray-100">
-                  {/* <h3 className="text-lg font-semibold text-gray-900 mb-4">Documents</h3> */}
-                  
-                  {/* Upload Area */}
-                  <div 
-                    className="border-2 border-dashed border-blue-200 rounded-xl p-6 text-center hover:border-blue-300 transition-colors cursor-pointer group"
-                    onClick={() => fileInputRef.current?.click()}
-                  >
-                    <Upload className="w-8 h-8 text-blue-500 mx-auto mb-2 group-hover:scale-110 transition-transform" />
-                    <p className="text-sm text-gray-600 mb-1">Drop files here or click to upload</p>
-                    <p className="text-xs text-gray-400">PDF, DOC, DOCX up to 10MB</p>
-                  </div>
-                  
-                  <input
-                    ref={fileInputRef}
-                    type="file"
-                    multiple
-                    accept=".pdf,.doc,.docx"
-                    onChange={handleFileUpload}
-                    className="hidden"
-                  />
-                </div>
-              </div>
-            </div>
-
-            {/* Main Chat Area */}
             <div className="lg:col-span-3 overflow-y-auto min-h-screen">
               <div className="bg-white/80 backdrop-blur-sm rounded-2xl border border-white/50 shadow-lg h-full flex flex-col">
                 
@@ -324,14 +273,12 @@ const AnalysisPage: React.FC = () => {
                   {messages.map((message) => (
                     <div key={message.id} className={`flex ${message.type === 'user' ? 'justify-end' : 'justify-start'}`}>
                       <div className={`flex space-x-3 max-w-3xl ${message.type === 'user' ? 'flex-row-reverse space-x-reverse' : ''}`}>
-                        {/* Avatar */}
                         <div className={`flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center ${
                           message.type === 'user' 
                             ? 'bg-blue-600' 
                             : message.type === 'system'
                             ? 'bg-gray-400'
                             : 'bg-white'
-            
                         }`}>
                           {message.type === 'user' ? (
                             <User className="w-4 h-4 text-white" />
@@ -342,7 +289,6 @@ const AnalysisPage: React.FC = () => {
                           )}
                         </div>
                         
-                        {/* Message Content */}
                         <div className={`rounded-2xl px-4 py-3 ${
                           message.type === 'user'
                             ? 'bg-blue-600 text-white'
@@ -387,21 +333,65 @@ const AnalysisPage: React.FC = () => {
         </div>
       </div>
 
-      {/* Fixed Bottom Analyze Button */}
+      {/* Fixed Bottom Input Section */}
       <div className="fixed bottom-0 left-0 right-0 z-40 bg-white/95 backdrop-blur-md border-t border-gray-200 p-4">
-        <div className="max-w-7xl mx-auto">
-          <button
-            onClick={startAnalysis}
-            disabled={isAnalyzing || uploadedFiles.length === 0}
-            className={`w-full flex items-center justify-center space-x-3 px-8 py-4 rounded-2xl font-semibold text-lg transition-all duration-300 ${
-              isAnalyzing || uploadedFiles.length === 0
-                ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
-                : 'bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white shadow-lg hover:shadow-xl transform hover:-translate-y-0.5'
-            }`}
+        <div className="max-w-7xl mx-auto flex flex-col space-y-3">
+          
+          {/* Show uploaded files if any */}
+          {uploadedFiles.length > 0 && (
+            <div className="bg-blue-50 rounded-xl p-3">
+              <p className="text-sm font-medium text-blue-900 mb-2">Uploaded Files:</p>
+              <div className="space-y-1">
+                {uploadedFiles.map((file) => (
+                  <div key={file.id} className="flex items-center justify-between text-xs text-blue-800">
+                    <span className="truncate max-w-xs">{file.name}</span>
+                    <span>{formatFileSize(file.size)}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Upload Area */}
+          <div 
+            className="border-2 border-dashed border-blue-200 rounded-xl p-3 text-center hover:border-blue-300 transition-colors cursor-pointer group"
+            onClick={() => fileInputRef.current?.click()}
           >
-            <Play className="w-6 h-6" />
-            <span className='text-sm'>{isAnalyzing ? 'Analyzing...' : 'Begin Analysis'}</span>
-          </button>
+            <Upload className="w-6 h-6 text-blue-500 mx-auto mb-1 group-hover:scale-110 transition-transform" />
+            <p className="text-xs text-gray-600 mb-1">Drop files here or click to upload</p>
+            <p className="text-xs text-gray-400">PDF, DOC, DOCX up to 10MB</p>
+          </div>
+
+          {/* Chat Input */}
+          <div className="flex items-end space-x-3 bg-white rounded-2xl border border-gray-200 shadow-lg p-3">
+            <div className="flex-1">
+              <textarea
+                ref={inputRef}
+                value={inputMessage}
+                onChange={handleInputChange}
+                onKeyPress={handleKeyPress}
+                placeholder="Ask me to analyze your documents, check for errors, or any other questions..."
+                className="w-full resize-none border-0 outline-none text-sm leading-6 max-h-[120px] min-h-[24px] placeholder-gray-400"
+                rows={1}
+                disabled={isAnalyzing}
+              />
+            </div>
+            <button
+              onClick={sendMessage}
+              disabled={isAnalyzing || (!inputMessage.trim() && uploadedFiles.length === 0)}
+              className={`p-2 rounded-xl transition-all duration-200 ${
+                isAnalyzing || (!inputMessage.trim() && uploadedFiles.length === 0)
+                  ? 'bg-gray-200 text-gray-400 cursor-not-allowed'
+                  : 'bg-blue-600 hover:bg-blue-700 text-white shadow-md hover:shadow-lg transform hover:scale-105'
+              }`}
+            >
+              {isAnalyzing ? (
+                <div className="w-5 h-5 border-2 border-gray-400 border-t-transparent rounded-full animate-spin"></div>
+              ) : (
+                <Send className="w-5 h-5" />
+              )}
+            </button>
+          </div>
         </div>
       </div>
     </div>
