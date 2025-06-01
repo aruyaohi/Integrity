@@ -1,6 +1,6 @@
 'use client'
 import React, { useState, useEffect } from 'react';
-import { Menu, X, ArrowRight,Brain,Twitter,Linkedin,Mail,Github,ScrollIcon, LoaderCircle } from 'lucide-react';
+import { Menu, X, ArrowRight,Brain,Github,ScrollIcon, LoaderCircle } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 
 const AnimatedHeader = () => {
@@ -32,15 +32,15 @@ const AnimatedHeader = () => {
   // }
 
   const mobileNav = [
-    {name: 'Gihub', icon: Github, href: '/'},
-    {name: 'Docs', icon: ScrollIcon, href: '/'}
+    {name: 'Gihub', icon: Github, href: 'https://github.com/aruyaohi/academic_paper_reviewer'},
+    {name: 'Docs', icon: ScrollIcon, href: '#'}
   ]
 
    const socialLinks = [
-    { icon: Twitter, href: 'https://twitter.com', label: 'Twitter' },
-    { icon: Github, href: 'https://github.com', label: 'GitHub' },
-    { icon: Linkedin, href: 'https://linkedin.com', label: 'LinkedIn' },
-    { icon: Mail, href: 'mailto:contact@peerreview.com', label: 'Email' }
+    // { icon: Twitter, href: 'https://twitter.com', label: 'Twitter' },
+    { icon: Github, href: 'https://github.com/aruyaohi/academic_paper_reviewer', label: 'GitHub' },
+    // { icon: Linkedin, href: 'https://linkedin.com', label: 'LinkedIn' },
+    // { icon: Mail, href: 'mailto:contact@peerreview.com', label: 'Email' }
   ];
 
   const toggleMobileMenu = () => {
