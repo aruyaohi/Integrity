@@ -32,13 +32,13 @@ const AnimatedHeader = () => {
   // }
 
   const mobileNav = [
-    {name: 'Gihub', icon: Github, href: 'https://github.com/aruyaohi/academic_paper_reviewer'},
+    {name: 'Gihub', icon: Github, href: '#'},
     {name: 'Docs', icon: ScrollIcon, href: '#'}
   ]
 
    const socialLinks = [
     // { icon: Twitter, href: 'https://twitter.com', label: 'Twitter' },
-    { icon: Github, href: 'https://github.com/aruyaohi/academic_paper_reviewer', label: 'GitHub' },
+    { icon: Github, href: '#', label: 'GitHub' },
     // { icon: Linkedin, href: 'https://linkedin.com', label: 'LinkedIn' },
     // { icon: Mail, href: 'mailto:contact@peerreview.com', label: 'Email' }
   ];
