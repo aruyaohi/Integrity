@@ -1,7 +1,7 @@
 'use client'
 import React, { useState, useRef, useEffect } from 'react';
 import { 
-  Menu, X, Brain, Upload, User, Bot, 
+  Brain, Upload, User, Bot, 
   CheckCircle, Settings, MoreVertical, Play
 } from 'lucide-react';
 
@@ -37,8 +37,9 @@ interface ApiResponse {
 
 const AnalysisPage: React.FC = () => {
   const [isScrolled, setIsScrolled] = useState<boolean>(false);
-  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState<boolean>(false);
+  // const [isMobileMenuOpen, setIsMobileMenuOpen] = useState<boolean>(false);
   const [uploadedFiles, setUploadedFiles] = useState<UploadedFile[]>([]);
+  //default bot placeholder message
   const [messages, setMessages] = useState<Message[]>([
     {
       id: 1,
@@ -51,6 +52,8 @@ const AnalysisPage: React.FC = () => {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
+
+  //use effect for handling scrolling
   useEffect(() => {
     const handleScroll = () => setIsScrolled(window.scrollY > 50);
     window.addEventListener('scroll', handleScroll);
@@ -60,6 +63,9 @@ const AnalysisPage: React.FC = () => {
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
+
+
+
 
   const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     if (!event.target.files) return;
