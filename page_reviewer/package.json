@@ -16,6 +16,7 @@
     "@langchain/langgraph": "^0.2.74",
     "@langchain/openai": "^0.5.11",
     "dotenv": "^16.5.0",
+    "lucide-react": "^0.511.0",
     "next": "15.3.3",
     "react": "^19.0.0",
     "react-dom": "^19.0.0"
