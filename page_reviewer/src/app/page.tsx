@@ -102,6 +102,7 @@ const AnimatedHeader = () => {
               {/* Desktop CTA Buttons */}
               <div className="hidden lg:flex items-center space-x-4">
                 <button 
+                  onClick={() => {location.href = "/app"}}
                   className={`bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-semibold transition-all duration-300 transform hover:scale-105 hover:shadow-lg ${
                     isScrolled ? 'px-4 py-2 text-sm' : 'px-6 py-3 text-base'
                   }`}
@@ -152,7 +153,9 @@ const AnimatedHeader = () => {
                   animation: 'fadeInUp 1s ease-out 0.8s both'
                 }}
               >
-                <button className="group bg-blue-600 hover:bg-blue-700 text-white px-10 py-5 rounded-2xl text-xl font-semibold transition-all duration-300 transform hover:scale-105 hover:shadow-2xl flex items-center shadow-lg">
+                <button 
+                onClick={() => {location.href = "/app"}}
+                className="group bg-blue-600 hover:bg-blue-700 text-white px-10 py-5 rounded-2xl text-xl font-semibold transition-all duration-300 transform hover:scale-105 hover:shadow-2xl flex items-center shadow-lg">
                   Try Demo
                   <ArrowRight className="w-6 h-6 ml-3 group-hover:translate-x-1 transition-transform duration-300" />
                 </button>
