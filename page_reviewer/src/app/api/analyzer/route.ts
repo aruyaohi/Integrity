@@ -3,14 +3,14 @@ dotenv.config({path: '.env.local'});
 import { GoogleGenAI } from "@google/genai";
 
 // Load the API key
-const apiKey = process.env.API_KEY;
+// const apiKey = process.env.API_KEY;
 
-if (!apiKey) {
-  throw new Error("AI_API_KEY not set in environment variables");
-}
+// if (!apiKey) {
+//   throw new Error("AI_API_KEY not set in environment variables");
+// }
 
 
-const ai = new GoogleGenAI({ apiKey: apiKey });
+const ai = new GoogleGenAI({ apiKey: 'AIzaSyBkSCdiWEURaKUx8ty1DGR6Gi5zs8cR4Cs' });
 
 async function main() {
   const response = await ai.models.generateContent({
