@@ -364,7 +364,7 @@ const AnalysisPage: React.FC = () => {
               <p className="text-sm font-medium text-blue-900 mb-2">Uploaded Files ({uploadedFiles.length}):</p>
               <div className="space-y-2">
                 {uploadedFiles.map((file) => (
-                  <div key={file.id} className="flex items-center justify-between bg-white rounded-lg p-2 group hover:bg-blue-50 transition-colors border border-red-500">
+                  <div key={file.id} className="flex items-center justify-between bg-white rounded-lg p-2 group hover:bg-blue-50 transition-colors border">
                     <div className="flex items-center space-x-2 flex-1 min-w-0">
                       <div className="w-2 h-2 bg-blue-500 rounded-full flex-shrink-0"></div>
                       <span className="text-xs text-blue-800 truncate font-medium">{file.name}</span>
