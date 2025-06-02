@@ -168,7 +168,7 @@ const AnimatedHeader = () => {
                     <item.icon size={18} className='text-gray-900'/>
                     <a
                       key={item.name}
-                      href="#"
+                      href={item.href}
                       className={`text-gray-600 hover:text-purple-600 transition-all duration-300 font-medium hover:translate-x-2 transform ${
                         isMobileMenuOpen ? 'animate-slideIn' : ''
                       }`}
