@@ -125,6 +125,9 @@ const AnalysisPage: React.FC = () => {
       });
 
       if (!response.ok) {
+        if(response.status === 500){
+          throw new Error('Network Error: Check network Connection')
+        }
         throw new Error(`HTTP error! status: ${response.status}`);
       }
 
@@ -167,16 +170,22 @@ const AnalysisPage: React.FC = () => {
   : `Analysis failed: ${result.error || 'Unknown error'}`,
           timestamp: new Date()
         };
+
         setMessages(prev => [...prev, botResponse]);
       } else {
         // Handle text-only messages
         const botResponse: Message = {
           id: Date.now() + 100,
           type: 'bot',
-          content: "I understand your request. Please upload some documents so I can analyze them for you.",
+          content: "You must Enter a Document (either a research paper or white paper) for analysis.",
           timestamp: new Date()
         };
-        setMessages(prev => [...prev, botResponse]);
+         setIsAnalyzing(true)
+        setTimeout(() =>{
+          setIsAnalyzing(false)
+          setMessages(prev => [...prev, botResponse]);
+        },3000)
+      
       }
       
     } catch (error) {
