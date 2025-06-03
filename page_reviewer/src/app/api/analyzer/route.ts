@@ -10,7 +10,7 @@ if(!apikey){
    throw new Error('Gemini API key is missing. Please set NEXT_PUBLIC_API_KEY in your .env.local file.');
 }
 const genAI = new GoogleGenerativeAI(apikey);
-console.log("next public api ran", process.env.NEXT_PUBLIC_API_KEY)
+
 
 interface AnalysisResult {
   success: boolean;
@@ -62,10 +62,10 @@ async function analyzeDocument(text: string, filename: string): Promise<Analysis
     - Detailed analysis explaining your findings
     
     Format your response as a structured analysis with clear sections and specific examples where possible.
+    also after the analysis i want you to generate a pdf with the changes made added
     `;
 
     const result = await model.generateContent(prompt);
-    console.log("This is chat's result",result);
     const response = await result.response;
     const analysisText = response.text();
 
@@ -108,7 +108,8 @@ export async function POST(request: NextRequest) {
     }
 
     // Process each uploaded file
-    const analysisResults: AnalysisResult['analysis'][] = [];
+  const analysisResults: NonNullable<AnalysisResult['analysis']>[] = [];
+
     
     for (let i = 0; i < fileCount; i++) {
       const file = formData.get(`file_${i}`) as File;
@@ -153,7 +154,9 @@ export async function POST(request: NextRequest) {
 
         // Analyze the document with AI
         const analysis = await analyzeDocument(extractedText, file.name);
-        analysisResults.push(analysis);
+        if(analysis){
+             analysisResults.push(analysis);
+        }
 
       } catch (fileError) {
         console.error(`Error processing file ${file.name}:`, fileError);
@@ -165,19 +168,19 @@ export async function POST(request: NextRequest) {
     }
 
     // Combine results if multiple files
-//    const combinedAnalysisAlt: AnalysisResult['analysis'] = {
-//   factualInconsistencies: analysisResults.reduce((sum, result) => sum + result.factualInconsistencies, 0),
-//   citationIssues: analysisResults.reduce((sum, result) => sum + result.citationIssues, 0),
-//   structuralRecommendations: analysisResults.reduce((sum, result) => sum + result.structuralRecommendations, 0),
-//   improvements: analysisResults.reduce((sum, result) => sum + result.improvements, 0),
-//   details: analysisResults.map(result => result.details).join('\n\n---\n\n')
-// };
+   const combinedAnalysisAlt: AnalysisResult['analysis'] = {
+  factualInconsistencies: analysisResults.reduce((sum, result) => sum + result.factualInconsistencies, 0),
+  citationIssues: analysisResults.reduce((sum, result) => sum + result.citationIssues, 0),
+  structuralRecommendations: analysisResults.reduce((sum, result) => sum + result.structuralRecommendations, 0),
+  improvements: analysisResults.reduce((sum, result) => sum + result.improvements, 0),
+  details: analysisResults.map(result => result.details).join('\n\n---\n\n')
+};
 
     // Return successful analysis
     return NextResponse.json({
       success: true,
       data: `Successfully analyzed ${fileCount} document(s)`,
-      analysis: analysisResults,
+      analysis: combinedAnalysisAlt,
     });
 
   } catch (error) {

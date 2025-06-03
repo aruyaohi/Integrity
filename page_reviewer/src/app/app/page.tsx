@@ -146,21 +146,23 @@ const AnalysisPage: React.FC = () => {
   const handleRequest = async () => {
     if (!inputMessage.trim() && uploadedFiles.length === 0) return;
 
-    const userMessage: Message = {
-      id: Date.now(),
-      type: 'user',
-      content: inputMessage.trim() || 'Analyze uploaded documents',
-      timestamp: new Date()
-    };
+    // const userMessage: Message = {
+    //   id: Date.now(),
+    //   type: 'user',
+    //   content: inputMessage.trim() || 'Analyze uploaded documents',
+    //   timestamp: new Date()
+    // };
 
-    setMessages(prev => [...prev, userMessage]);
+    // setMessages(prev => [...prev, userMessage]);
     setInputMessage('');
     setIsAnalyzing(true);
 
     try {
       if (uploadedFiles.length > 0) {
         const result = await sendToAPI(uploadedFiles);
-        console.log(result);
+        if(result.analysis){
+        console.log(result.analysis[0].details);
+        }
         
         const botResponse: Message = {
           id: Date.now() + 100,

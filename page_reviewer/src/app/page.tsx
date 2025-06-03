@@ -26,6 +26,10 @@ const AnimatedHeader = () => {
     },3000) 
   }
 
+
+  const handleNavigateToExternalSite = (url:string) => {
+    window.location.href = url;
+  }
   // type navItem =  {
   //   name: string,
   //   icon: React.ComponentType<{ className?: string }>;
@@ -114,7 +118,7 @@ const AnimatedHeader = () => {
               {/* Desktop Navigation */}
               <nav className="hidden lg:flex items-center space-x-8">
                 {mobileNav.map((item,index) => (
-                  <div key={item.name} className='flex justify-start gap-3 items-center hover:translate-x-2 transform hover:text-blue-500  transition-all duration-300'>
+                  <div key={item.name} className='flex justify-start gap-3 items-center hover:translate-x-2 transform hover:text-blue-500  transition-all duration-300' onClick={() => handleNavigateToExternalSite(item.href)}>
                     <item.icon size={18} className='text-gray-900'/>
                     <a
                       key={item.name}
