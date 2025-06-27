@@ -111,7 +111,7 @@ const AnimatedHeader = () => {
                     isScrolled ? 'text-lg' : 'text-xl'
                   }`}
                 >
-                  PeerReview
+                Rova
                 </span>
               </div>
 
