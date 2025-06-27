@@ -1,0 +1,4 @@
+# How do i go about fine-tuning this project?
+
+## First-off what is mean't by fine tuning?
+    => 

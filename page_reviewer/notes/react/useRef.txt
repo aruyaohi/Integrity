@@ -1,0 +1,22 @@
+# what is a useRef?
+=> A useRef in react allows you to create a refference and assign it to a DOM element for example. and then listens for a trigger and performs some action on the reference,
+without re-rendering the page or app.
+
+# useRef example:
+    import {useRef} from 'react';
+
+    function exampleCompoent = () =>{
+        const inputRef = useRef(null)
+
+        const focusInput = () => {
+            inputRef.current.focus() //when this function is called, the element with ref as inputRef should focus.
+        }
+        return (
+            <>
+                <input type="text" ref={inputRef}/>
+                <button onClick={focusInput}> Focus Input <button/> //When this button is clicked, the input is then focused ( this is an event trigger and Dom manipulation, that doesn't require the page to re-render).
+            </>
+        )
+    }
+
+#### Thank you!

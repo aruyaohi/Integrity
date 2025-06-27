@@ -1,0 +1,6 @@
+# What is Docker?
+
+=> Docker is an open platform that's used for building , shipping and running applications. Docker uses a technology called containerization to package software into standardize units
+called containers.
+
+

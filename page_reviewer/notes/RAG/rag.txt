@@ -1,0 +1,54 @@
+# What is RAG?
+=> Retrieval Augumented Generation:
+    Basically RAG is a technique that allows the LLM to make up-to-date information. it does this by retrieving data from a viable data source so it can make informed decisions.
+
+# What is Langchain?
+    => There are alot of LLMs available for use today, and each of them have their own capabilities and specialities. so say if i wanted to use multiple LLMs but for different purposes 
+    in my application. such as say i wanted to use a BIO AI for analysing some bio data and another LLM for music optimisation? 
+    Apparently this is where langchain comes in.
+
+    => So what is langchain?
+    answer: Langchain is an orchestration framework for the development of applications that use LLM models. It comes in both python, typescript or javascript.
+
+    => So what makes up langchain?
+    answer: Langchain streamlines the programming of LLM applications through abstrations.
+
+        => The LLM Modeule:
+            Langchain seems to be compatible with a lot of LLM. all that is required is an API key.
+
+        => Prompts:
+            Prompts are instructions given to a large language model.
+
+        => Chains:
+            These are the core of a langchain workflows. They combine LLMs with other components. creating applications by executing a sequence of functions
+        
+        => Indexes: 
+            These are custom datasets that are not naturally available to the LLMs training data set. such as emails or internal documents.
+                a. Document Loader: Document loaders work with third party applications for importing data sources from sources like file storage services, such as google drive or docs, or web content or databases. 
+                There's also support for vector data as well
+                b. text splitters: split text into chunks for Analysis by LLMs
+
+    ## The issue of memories
+    => LLMs by default do not have any long term memory such that there's sense of state such that there isn't any prior conversations. 
+    => Langchain's solution:
+        provision of utilities for adding in memory into your application. there are options to retain entire conversation or a summarization of the conversation had so far.
+
+    
+    ## Agents.
+
+
+
+    ## Langchain Use cases
+    a. chatbot: Langchain can be used to provide proper context for the specific use of a chatbot. and to integrate that chat bot into existing communication channels and workflows with their own APIs at a time.
+    b. summarization: Langchain can be tasked with summarizing many types of text. from breaking down complex academic papers and transcripts to summarizing novel or articles
+    c. data augumentation: LLMs can be used trained to generate synthetic data for us in machine learning. E.g an LLMs can be made to geneate existing samples that are similar but unique to existing samples in the dataset.
+    d. Virtual Agents: LLMs can be used to deduce the next viable course of action, and also carry out that action. using Robotic process automation or RPA
+
+
+    ## Langchain is open source and free to use
+
+
+    => Further research:
+    a. Langraph
+    b. Langsmith
+    

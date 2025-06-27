@@ -1,29 +1,46 @@
-
 import { NextRequest, NextResponse } from 'next/server';
-import { GoogleGenerativeAI } from '@google/generative-ai';
 import pdfParse from 'pdf-parse'
 
 
 //process api key from environment variable
-const apikey = process.env.NEXT_PUBLIC_API_KEY
+const apikey = process.env.GROQ_API_KEY
 if(!apikey){
    throw new Error('Gemini API key is missing. Please set NEXT_PUBLIC_API_KEY in your .env.local file.');
 }
-const genAI = new GoogleGenerativeAI(apikey);
 
-
-interface AnalysisResult {
+interface ProjectData {
+  icon: string
+  projectName: string,
+  about?:string,
+  summary? : {
+    coreInnovation:string ,
+    businessModel: string,
+    valueGeneration: string,
+  },
+  AI : {
+    metrics: string 
+    whyinvest: string 
+    howtoinvest: string 
+  },
+  projectPlatforms?:   
+  {
+  website?: string;
+  socials?: {
+    X?: string;
+    Discord:string;
+    telegram:string;
+    other?: string;
+  };
+  articles?: string[]; //
+};
+  contactFounder?: string;
+  achievements?: string[];
   success: boolean;
   data?: string;
   error?: string;
-  analysis?: {
-    factualInconsistencies: number;
-    citationIssues: number;
-    structuralRecommendations: number;
-    improvements: number;
-    details: string;
-  };
 }
+
+
 
 // Helper function to extract text from PDF buffer
 async function extractTextFromPDF(buffer: Buffer): Promise<string> {
@@ -36,58 +53,93 @@ async function extractTextFromPDF(buffer: Buffer): Promise<string> {
   }
 }
 
+
 // Helper function to analyze document with Google AI
-async function analyzeDocument(text: string, filename: string): Promise<AnalysisResult['analysis']> {
+async function analyzeDocumentWithGroq(text: string, filename: string) {
+  const prompt = `
+You are an expert white paper auditor for investors. Analyze the following project whitepaper and provide a structured JSON response with:
+
+- keep summary very short
+{
+  "icon" : "..." //Link to icon
+  "projectName": "...";
+  "about": "...";
+  "summary": //each and everyone of this summary should have about 100 - 200 words of useful information
+  {
+  coreInnovation: "...";
+  businessModel: "...";
+  valueGeneration: "..." // How value is generated. 
+  };
+  "AI" : {
+    metrics: "..." // Provide metric for analysis based on white paper, this should be reason for whyinvest sugesstion
+    whyinvest: "..." // Provide accurate reason why investor should invest based on up-to-date information
+    howtoinvest: "..." // Provide accurate information to the project investment process
+  }
+  };
+  projectPlatforms?:   
+  {
+  website?: "...";
+  socials?: {
+    X?: "...";
+    Discord?: "...";
+    telegram?: "...";
+    other?: "...";
+  };
+  articles?: string[]; //
+};
+  contactFounder?: string;
+  achievements?: string[];
+}
+
+Document: "${filename}"
+
+Content:
+${text.substring(0, 2000)}
+
+
+**Important** Result should lay more emphasis on determining if project is investment worth and why!!
+
+
+Respond only in valid JSON.
+`;
+
+  const res = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+    method: 'POST',
+    headers: {
+      'Authorization': `Bearer ${process.env.GROQ_API_KEY}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      model: 'llama-3.1-8b-instant',
+      messages: [{ role: 'user', content: prompt }],
+      temperature: 0.2,
+    }),
+  });
+
+  if (!res.ok) {
+    const errText = await res.text();
+    throw new Error(`Groq API error: ${res.status} ${res.statusText}\n${errText}`);
+  }
+
+  const data = await res.json();
+  const content = data.choices?.[0]?.message?.content;
+
+  if (!content) {
+    throw new Error('Groq returned no message content');
+  }
+
   try {
-    const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
-    
-    const prompt = `
-    You are an expert academic peer reviewer. Analyze the following research document and provide a comprehensive analysis focusing on:
-
-    1. Factual inconsistencies or contradictions
-    2. Citation and reference issues
-    3. Structural and organizational recommendations
-    4. Areas for improvement in clarity, methodology, or argumentation
-
-    Document: "${filename}"
-    
-    Content:
-    ${text.substring(0, 30000)} // Limit content to avoid token limits
-    
-    Please provide:
-    - A count of major factual inconsistencies found
-    - A count of citation/reference issues
-    - A count of structural recommendations
-    - A count of improvement suggestions
-    - Detailed analysis explaining your findings
-    
-    Format your response as a structured analysis with clear sections and specific examples where possible.
-    also after the analysis i want you to generate a pdf with the changes made added
-    `;
-
-    const result = await model.generateContent(prompt);
-    const response = await result.response;
-    const analysisText = response.text();
-
-    // Parse the AI response to extract counts (simple regex-based parsing)
-    const factualMatches = analysisText.match(/(\d+)\s*(?:factual|inconsistenc)/gi);
-    const citationMatches = analysisText.match(/(\d+)\s*(?:citation|reference)/gi);
-    const structuralMatches = analysisText.match(/(\d+)\s*(?:structural|organization)/gi);
-    const improvementMatches = analysisText.match(/(\d+)\s*(?:improvement|suggestion)/gi);
-
-    return {
-      factualInconsistencies: factualMatches ? parseInt(factualMatches[0].match(/\d+/)?.[0] || '0') : 0,
-      citationIssues: citationMatches ? parseInt(citationMatches[0].match(/\d+/)?.[0] || '0') : 0,
-      structuralRecommendations: structuralMatches ? parseInt(structuralMatches[0].match(/\d+/)?.[0] || '0') : 0,
-      improvements: improvementMatches ? parseInt(improvementMatches[0].match(/\d+/)?.[0] || '0') : 0,
-      details: analysisText
-    };
-    
-  } catch (error) {
-    console.error('AI analysis error:', error);
-    throw new Error('Failed to analyze document with AI');
+    return JSON.parse(content);
+  } catch (e) {
+    console.error('Raw Groq output:', content);
+    console.log(e)
+    throw new Error('Failed to parse Groq response as JSON');
   }
 }
+
+
+//Analyze function ends here
+
 
 export async function POST(request: NextRequest) {
   try {
@@ -108,7 +160,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Process each uploaded file
-  const analysisResults: NonNullable<AnalysisResult['analysis']>[] = [];
+  const analysisResults: NonNullable<ProjectData>[] = [];
 
     
     for (let i = 0; i < fileCount; i++) {
@@ -143,7 +195,6 @@ export async function POST(request: NextRequest) {
 
         // Extract text from PDF
         const extractedText = await extractTextFromPDF(buffer);
-        console.log(extractedText)
         
         if (!extractedText.trim()) {
           return NextResponse.json({ 
@@ -153,9 +204,10 @@ export async function POST(request: NextRequest) {
         }
 
         // Analyze the document with AI
-        const analysis = await analyzeDocument(extractedText, file.name);
+        const analysis = await analyzeDocumentWithGroq(extractedText, file.name);
         if(analysis){
-             analysisResults.push(analysis);
+            console.log(analysis)
+            analysisResults.push(analysis);
         }
 
       } catch (fileError) {
@@ -167,20 +219,11 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    // Combine results if multiple files
-   const combinedAnalysisAlt: AnalysisResult['analysis'] = {
-  factualInconsistencies: analysisResults.reduce((sum, result) => sum + result.factualInconsistencies, 0),
-  citationIssues: analysisResults.reduce((sum, result) => sum + result.citationIssues, 0),
-  structuralRecommendations: analysisResults.reduce((sum, result) => sum + result.structuralRecommendations, 0),
-  improvements: analysisResults.reduce((sum, result) => sum + result.improvements, 0),
-  details: analysisResults.map(result => result.details).join('\n\n---\n\n')
-};
-
     // Return successful analysis
     return NextResponse.json({
       success: true,
       data: `Successfully analyzed ${fileCount} document(s)`,
-      analysis: combinedAnalysisAlt,
+      analysis: analysisResults,
     });
 
   } catch (error) {
