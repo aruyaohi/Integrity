@@ -8,6 +8,7 @@ if(!apikey){
    throw new Error('Gemini API key is missing. Please set NEXT_PUBLIC_API_KEY in your .env.local file.');
 }
 
+
 interface ProjectData {
   icon: string
   projectName: string,
