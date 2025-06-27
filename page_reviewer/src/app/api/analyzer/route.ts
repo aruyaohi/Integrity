@@ -3,7 +3,7 @@ import pdfParse from 'pdf-parse'
 
 
 //process api key from environment variable
-const apikey = process.env.GROQ_API_KEY
+const apikey = process.env.NEXT_PUBLIC_API_KEY
 if(!apikey){
    throw new Error('Gemini API key is missing. Please set NEXT_PUBLIC_API_KEY in your .env.local file.');
 }
