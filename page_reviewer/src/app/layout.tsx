@@ -13,7 +13,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "PeerReview",
+  title: "ProbeAi",
   description: "Vet White paper for errors, logical fallacies and plagarisms",
 };
 

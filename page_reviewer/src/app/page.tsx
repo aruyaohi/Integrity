@@ -104,14 +104,14 @@ const AnimatedHeader = () => {
                     isScrolled ? 'w-8 h-8' : 'w-10 h-10'
                   }`}
                 >
-                  <Brain className={`text-blue-500 transition-all duration-300 ${isScrolled ? 'w-4 h-4' : 'w-6 h-6'}`} />
+                        <Brain className="w-6 h-6 text-blue-500" />
                 </div>
                 <span 
                   className={`font-bold text-gray-900 transition-all duration-300 ${
                     isScrolled ? 'text-lg' : 'text-xl'
                   }`}
                 >
-                Rova
+                ProbeAi
                 </span>
               </div>
 
@@ -295,7 +295,7 @@ const AnimatedHeader = () => {
                 <div className="bg-white rounded-xl w-10 h-10 flex items-center justify-center">
                   <Brain className="w-6 h-6 text-blue-500" />
                 </div>
-                <span className="text-xl font-bold text-gray-900">PeerReview</span>
+                <span className="text-xl font-bold text-gray-900">ProbeAi</span>
               </div>
               <p className="text-gray-600 mb-6 max-w-md">
                 Advanced AI-powered document analysis that helps researchers and professionals 
