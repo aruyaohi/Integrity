@@ -3,8 +3,10 @@ import React, { useState, useRef, useEffect } from 'react';
 import { 
   Upload, User, Bot,
   CheckCircle, MoreVertical, Send, Trash, FileText,
+  Globe2,
+  Globe,
 } from 'lucide-react';
-
+import Link from 'next/link';
 
 
 interface UploadedFile {
@@ -446,7 +448,14 @@ const AnalysisPage: React.FC = () => {
 
                             <div className='flex flex-col'>
                             <h3 className='font-bold text-md'>Visit Platform</h3>
-                            <span className='text-sm font-medium text-gray-600'>{message.result?.projectPlatforms?.website}</span>
+                            <span className='text-sm text-purple-600'>
+                              <Link href={message.result?.projectPlatforms?.website || '#'}>
+                              <button className='underline'>
+                                  {message.result?.projectPlatforms?.website}
+                                </button>                               
+                              </Link>
+
+                              </span>
                             </div>
 
                             </div>
