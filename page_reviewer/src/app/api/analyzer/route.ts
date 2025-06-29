@@ -8,6 +8,8 @@ if(!apikey){
    throw new Error('Gemini API key is missing. Please set NEXT_PUBLIC_API_KEY in your .env.local file.');
 }
 
+console.log(apikey)
+
 
 interface ProjectData {
   icon: string
@@ -57,7 +59,7 @@ async function extractTextFromPDF(buffer: Buffer): Promise<string> {
 
 // Helper function to analyze document with Google AI
 async function analyzeDocumentWithGroq(text: string, filename: string) {
-  const prompt = `
+const prompt = `
 You are an expert white paper auditor for investors. Analyze the following project whitepaper and provide a structured JSON response with:
 
 - keep summary very short
@@ -98,16 +100,17 @@ Content:
 ${text.substring(0, 2000)}
 
 
-**Important** Result should lay more emphasis on determining if project is investment worth and why!!
+**Important** Result should lay more emphasis on determining if project is investment worthy and why!!
 
 
 Respond only in valid JSON.
 `;
 
-  const res = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+
+const res = await fetch('https://api.groq.com/openai/v1/chat/completions', {
     method: 'POST',
     headers: {
-      'Authorization': `Bearer ${process.env.GROQ_API_KEY}`,
+      'Authorization': `Bearer ${process.env.NEXT_PUBLIC_API_KE}`,
       'Content-Type': 'application/json',
     },
     body: JSON.stringify({
@@ -160,10 +163,10 @@ export async function POST(request: NextRequest) {
       }, { status: 400 });
     }
 
-    // Process each uploaded file
+
   const analysisResults: NonNullable<ProjectData>[] = [];
 
-    
+    // Process each uploaded file    
     for (let i = 0; i < fileCount; i++) {
       const file = formData.get(`file_${i}`) as File;
       
@@ -220,7 +223,7 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    // Return successful analysis
+    //Return successful analysis
     return NextResponse.json({
       success: true,
       data: `Successfully analyzed ${fileCount} document(s)`,
