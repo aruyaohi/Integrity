@@ -384,12 +384,12 @@ const AnalysisPage: React.FC = () => {
                             <div className='flex justify-between items-center py-3'>
                               {/* Icon */}
                             <div className='flex gap-4'>
-                              <div className='rounded-md border'>
+                              {/* <div className='rounded-md border'>
                                 <img src={message.result?.icon || "placeholder.png"} alt="logo" className='w-4 h-4'/>
-                              </div>
+                              </div> */}
                             <div>
                             <div className='flex flex-col'>
-                            <span>{message.result?.projectName}</span>
+                            <span className='font-bold text-lg'>{message.result?.projectName}</span>
                             <span>{message.result?.about}</span>
                             </div>
                             <div>
