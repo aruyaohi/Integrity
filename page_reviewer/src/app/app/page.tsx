@@ -3,8 +3,6 @@ import React, { useState, useRef, useEffect } from 'react';
 import { 
   Upload, User, Bot,
   CheckCircle, MoreVertical, Send, Trash, FileText,
-  Globe2,
-  Globe,
 } from 'lucide-react';
 import Link from 'next/link';
 
