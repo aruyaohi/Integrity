@@ -444,6 +444,11 @@ const AnalysisPage: React.FC = () => {
                             <span className='text-sm font-medium text-gray-600'>{message.result?.AI.howtoinvest}</span>
                             </div>
 
+                            <div className='flex flex-col'>
+                            <h3 className='font-bold text-md'>Visit Platform</h3>
+                            <span className='text-sm font-medium text-gray-600'>{message.result?.projectPlatforms?.website}</span>
+                            </div>
+
                             </div>
                             </div>
                           </div>
