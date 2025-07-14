@@ -1,643 +1,413 @@
 'use client'
-import React, { useState, useRef, useEffect } from 'react';
-import { 
-  Upload, User, Bot,
-  CheckCircle, MoreVertical, Send, Trash, FileText,
-} from 'lucide-react';
-import Link from 'next/link';
-
-
-interface UploadedFile {
-  id: number;
-  name: string;
-  size: number;
-  type: string;
-  uploadedAt: Date;
-  file: File; 
-}
-
-interface Message {
-  id: number;
-  type: 'user' | 'bot' | 'system';
-  content: string;
-  result : ProjectData | null,
-  timestamp: Date;
-}
-
-interface ProjectData {
-  icon: string,
-  projectName: string,
-  about?:string,
-  summary? : {
-    coreInnovation:string ,
-    businessModel: string,
-    valueGeneration: string,
-  },
-  AI : {
-    metrics: string 
-    whyinvest: string 
-    howtoinvest: string 
-  },
-  projectPlatforms?:   
-  {
-  website?: string;
-  socials?: {
-    X?: string;
-    Discord:string;
-    telegram:string;
-    other?: string;
-  };
-  articles?: string[]; //
-};
-  contactFounder?: string;
-  achievements?: string[];
-  success: boolean;
-  data?: string;
-  error?: string;
-}
-
-const AnalysisPage: React.FC = () => {
-  const [uploadedFiles, setUploadedFiles] = useState<UploadedFile[]>([]);
-  const [responseData, setResponseData] = useState<ProjectData | undefined>();
-  const [messages, setMessages] = useState<Message[]>([
-    {
-      id: 1,
-      type: 'bot',
-      content: 'Hello! I\'m your AI research assistant. Upload your white papers or documents and click "Analyze Documents" to get started with comprehensive analysis for errors, inconsistencies, and insights.',
-      timestamp: new Date(),
-      result: null
-    }
-  ]);
-  const [isAnalyzing, setIsAnalyzing] = useState<boolean>(false);
-  const [inputMessage, setInputMessage] = useState<string>('');
-  const [dragActive, setDragActive] = useState<boolean>(false);
-  const messagesEndRef = useRef<HTMLDivElement>(null);
-  const fileInputRef = useRef<HTMLInputElement>(null);
-  const inputRef = useRef<HTMLTextAreaElement>(null);
+import React, { useState, useEffect } from 'react';
+import { Menu, X, ArrowRight, TrendingUp, Github, FileText,File, LoaderCircle, BarChart3, Zap,Twitter, Shield, Globe, MessageCircle, Bot } from 'lucide-react';
+import { useRouter } from 'next/navigation';
+const Web3TradingLanding = () => {
+  const router = useRouter()
+  const [isScrolled, setIsScrolled] = useState(false);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [messages]);
-
-  // Drag and drop handlers
-  const handleDrag = (e: React.DragEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    if (e.type === 'dragenter' || e.type === 'dragover') {
-      setDragActive(true);
-    } else if (e.type === 'dragleave') {
-      setDragActive(false);
-    }
-  };
-
-  const handleDrop = (e: React.DragEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    setDragActive(false);
-    
-    if (e.dataTransfer.files && e.dataTransfer.files[0]) {
-      handleFiles(Array.from(e.dataTransfer.files));
-    }
-  };
-
-  const handleFiles = (files: File[]) => {
-    const validFiles = files.filter(file => {
-      const validTypes = ['application/pdf', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'];
-      const maxSize = 10 * 1024 * 1024; // 10MB
-      return validTypes.includes(file.type) && file.size <= maxSize;
-    });
-
-    if (validFiles.length !== files.length) {
-      const invalidMessage: Message = {
-        id: Date.now(),
-        type: 'system',
-        content: `${files.length - validFiles.length} file(s) were rejected. Only PDF, DOC, DOCX files under 10MB are allowed.`,
-        timestamp: new Date(),
-        result: null
-      };
-      setMessages(prev => [...prev, invalidMessage]);
-    }
-
-    if (validFiles.length > 0) {
-      const newFiles: UploadedFile[] = validFiles.map(file => ({
-        id: Date.now() + Math.random(),
-        name: file.name,
-        size: file.size,
-        type: file.type,
-        uploadedAt: new Date(),
-        file: file
-      }));
-      
-      setUploadedFiles(prev => [...prev, ...newFiles]);
-      
-      const fileMessage: Message = {
-        id: Date.now(),
-        type: 'system',
-        content: `Successfully uploaded ${validFiles.length} file(s): ${validFiles.map(f => f.name).join(', ')}`,
-        timestamp: new Date(),
-        result: null
-      };
-      setMessages(prev => [...prev, fileMessage]);
-    }
-  };
-
-  const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
-    if (!event.target.files) return;
-    handleFiles(Array.from(event.target.files));
-    // Reset the input so the same file can be uploaded again
-    event.target.value = '';
-  };
-
-  const handleRemoveFile = (fileId: number) => {
-    const fileToRemove = uploadedFiles.find(f => f.id === fileId);
-    setUploadedFiles(prev => prev.filter(file => file.id !== fileId));
-    
-    if (fileToRemove) {
-      const removeMessage: Message = {
-        id: Date.now(),
-        type: 'system',
-        content: `Removed file: ${fileToRemove.name}`,
-        timestamp: new Date(),
-        result : null
-      };
-      setMessages(prev => [...prev, removeMessage]);
-    }
-  };
-
-  const sendToAPI = async (files: UploadedFile[]) => {
-    try {
-      const formData = new FormData();
-      
-      files.forEach((fileObj, index) => {
-        formData.append(`file_${index}`, fileObj.file);
-      });
-      
-      formData.append('fileCount', files.length.toString());
-      formData.append('fileNames', JSON.stringify(files.map(f => f.name)));
-      formData.append('analysisType', 'comprehensive');
-      
-      const response = await fetch('/api/analyzer', {
-        method: 'POST',
-        body: formData,
-      });
-
-      if (!response.ok) {
-        if (response.status === 500) {
-          throw new Error('Network Error: Check network Connection');
-        }
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-
-      
-
-      const result = await response.json();
-      console.log("This is the actual response", result.analysis[0])
-      return result;
-      
-    } catch (error) {
-      console.error('API Error:', error);
-      return {
-        success: false,
-        error: error instanceof Error ? error.message : 'Unknown error occurred'
-      };
-    }
-  };
-
-  const handleRequest = async () => {
-    if (uploadedFiles.length === 0) {
-      const errorMessage: Message = {
-        id: Date.now(),
-        type: 'bot',
-        content: "Please upload at least one document (PDF, DOC, or DOCX) for analysis.",
-        timestamp: new Date(),
-        result: null
-      };
-      setMessages(prev => [...prev, errorMessage]);
-      return;
-    }
-
-    setIsAnalyzing(true);
-
-    try {
-      const result = await sendToAPI(uploadedFiles);
-      console.log("Analysis result:", result.analysis);
-      const data = result.analysis[0]
-      
-      if (data) {
-        setResponseData(data);
-        console.log(responseData)
-        
-        const botResponse: Message = {
-          id: Date.now(),
-          type: 'bot',
-          content: data? `Analysis complete!`: `Analysis failed: ${result.error || 'Unknown error'}`,
-          timestamp: new Date(),
-          result : data,
-        };
-        setMessages(prev => [...prev, botResponse]);
-      }
-      
-    } catch (error) {
-      console.error('Request error:', error);
-      const errorResponse: Message = {
-        id: Date.now(),
-        result: null,
-        type: 'bot',
-        content: 'Sorry, there was an error processing your request. Please try again.',
-        timestamp: new Date()
-      };
-      setMessages(prev => [...prev, errorResponse]);
-    } finally {
-      setIsAnalyzing(false);
-    }
-  };
-
-  const handleKeyPress = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
-    if (e.key === 'Enter' && !e.shiftKey) {
-      e.preventDefault();
-      if (inputMessage.trim()) {
-        const userMessage: Message = {
-          id: Date.now(),
-          result: null,
-          type: 'user',  
-          content: inputMessage,
-          timestamp: new Date()
-        };
-        setMessages(prev => [...prev, userMessage]);
-        setInputMessage('');
-        
-        // Simple bot response for text messages
-        setTimeout(() => {
-          const botResponse: Message = {
-            id: Date.now() + 100,
-            result: null,
-            type: 'bot',
-            content: "I can help you analyze documents. Please upload your research papers or white papers using the upload area below, then click 'Analyze Documents'.",
-            timestamp: new Date()
-          };
-          setMessages(prev => [...prev, botResponse]);
-        }, 1000);
-      }
-    }
-  };
-
-  const handleInputChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
-    setInputMessage(e.target.value);
-    if (inputRef.current) {
-      inputRef.current.style.height = 'auto';
-      inputRef.current.style.height = Math.min(inputRef.current.scrollHeight, 120) + 'px';
-    }
-  };
-
-  const formatFileSize = (bytes: number): string => {
-    if (bytes === 0) return '0 Bytes';
-    const k = 1024;
-    const sizes = ['Bytes', 'KB', 'MB', 'GB'];
-    const i = Math.floor(Math.log(bytes) / Math.log(k));
-    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
-  };
-
-  const clearAllFiles = () => {
-    setUploadedFiles([]);
-    const clearMessage: Message = {
-      id: Date.now(),
-      result: null,
-      type: 'system',
-      content: 'All files have been cleared.',
-      timestamp: new Date()
+    const handleScroll = () => {
+      const scrollTop = window.scrollY;
+      setIsScrolled(scrollTop > 50);
     };
-    setMessages(prev => [...prev, clearMessage]);
+
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
+
+  const handleNavigation = (page: string) => {
+    setIsLoading(true);
+    setTimeout(() => {
+      router.push('/app')
+      setIsLoading(false);
+    }, 2000);
+  };
+
+  const handleNavigateToExternalSite = (url: string) => {
+    window.open(url, '_blank');
+  };
+
+  // const mobileNav = [
+  //   { name: 'GitHub', icon: Github, href: 'https://github.com/your-project' },
+  //   { name: 'Docs', icon: FileText, href: '#' },
+  //   { name: 'Analytics', icon: BarChart3, href: '#' }
+  // ];
+
+  const socialLinks = [
+    { icon: Github, href: 'https://github.com/your-project', label: 'GitHub' },
+    { icon: MessageCircle, href: 'https://t.me/your-project', label: 'Telegram' },
+    { icon: Globe, href: 'https://twitter.com/your-project', label: 'Twitter' },
+  ];
+
+  const toggleMobileMenu = () => {
+    setIsMobileMenuOpen(!isMobileMenuOpen);
   };
 
   return (
-    <div className="min-h-screen flex flex-col bg-white">
-      {/* Hidden File Input */}
-      <input
-        ref={fileInputRef}
-        type="file"
-        onChange={handleFileUpload}
-        accept=".pdf,.doc,.docx"
-        multiple
-        className="hidden"
-      />
-
-
-      {/* Main Content Area */}
-      <div className="flex-1 flex flex-col pt-28 pb-4 px-4">
-        <div className="flex-1 max-w-7xl mx-auto w-full">
-          <div className="h-full flex flex-col">
-            {/* Chat Container */}
-            <div className="flex-1 bg-white/80 backdrop-blur-sm rounded-2xl border border-white/50 shadow-xl flex flex-col overflow-hidden">
-              
-              {/* Chat Header */}
-              <div className="flex-shrink-0 p-6 border-b border-gray-100 bg-gradient-to-r from-blue-50 to-indigo-50">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center space-x-3">
-                    <div className="bg-white rounded-xl w-12 h-12 flex items-center justify-center shadow-lg">
-                      <Bot className="w-6 h-6 text-blue-500"/>
-                    </div>
-                    <div>
-                      <h2 className="text-md font-semibold text-gray-900">Project Analysis</h2>
-                      <p className="text-sm text-gray-600">AI-powered Project review and analysis via White paper and project recent activities</p>
-                    </div>
-                  </div>
-                  <button className="p-2 hover:bg-white/50 rounded-xl transition-colors">
-                    <MoreVertical className="w-5 h-5 text-gray-500" />
-                  </button>
-                </div>
-              </div>
-
-              {/* Messages Area */}
-              <div className="flex-1 overflow-y-auto p-6 space-y-4 min-h-0">
-                {messages.map((message) => (
-                  <div key={message.id} className={`flex ${message.type === 'user' ? 'justify-end' : 'justify-start'}`}>
-                    <div className={`flex space-x-3 max-w-3xl ${message.type === 'user' ? 'flex-row-reverse space-x-reverse' : ''}`}>
-                      <div className={`flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center shadow-lg ${
-                        message.type === 'user' 
-                          ? 'bg-blue-500' 
-                          : message.type === 'system'
-                          ? 'bg-gray-500'
-                          : 'bg-white border-2 border-blue-100'
-                      }`}>
-                        {message.type === 'user' ? (
-                          <User className="w-4 h-4 text-white" />
-                        ) : message.type === 'system' ? (
-                          <CheckCircle className="w-4 h-4 text-white" />
-                        ) : (
-                          <Bot className="w-5 h-5 text-blue-500" />
-                        )}
-                      </div>
-                      
-                      <div className={`rounded-2xl px-4 py-3 shadow-lg ${
-                        message.type === 'user'
-                          ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white'
-                          : message.type === 'system'
-                          ? 'bg-gray-100 text-gray-700 text-sm italic border'
-                          : 'bg-white text-gray-900 border border-gray-200'
-                      }`}>
-                        <div>
-                          {message.result != null?  
-                          <div className='w-full h-screen/2 rounded-2xl bg-gray-50 px-10 py-3'>
-                            
-
-                            {/* Project Name & Icon */}
-                            <div className='flex justify-between items-center py-3'>
-                              {/* Icon */}
-                            <div className='flex gap-4'>
-                              {/* <div className='rounded-md border'>
-                                <img src={message.result?.icon || "placeholder.png"} alt="logo" className='w-4 h-4'/>
-                              </div> */}
-                            <div>
-                            <div className='flex flex-col'>
-                            <span className='font-bold text-lg'>{message.result?.projectName}</span>
-                            <span>{message.result?.about}</span>
-                            </div>
-                            <div>
-                            </div>
-                            </div>
-                            </div>
-                            </div>
-
-                            {/* Project Summary */}
-                            <h3 className='text-lg font-bold text-blue-900'> Project Information</h3>
-                            <div className='flex justify-between gap-3'>
-                            <div className='flex flex-col gap-4'>
-                            <div className='flex flex-col'>
-                            <h3 className='font-bold text-md'>Core Innovation</h3>
-                            <span className='text-sm font-medium text-gray-600'>{message.result?.summary?.coreInnovation}</span>
-                            </div>
-                            <div className='flex flex-col'>
-                            <h3 className='font-bold text-md'>Business Model</h3>
-                            <span className='text-sm font-medium text-gray-600'>{message.result?.summary?.businessModel}</span>
-                            </div>
-
-                            <div className='flex flex-col'>
-                            <h3 className='font-bold text-md'>Value Generation</h3>
-                            <span className='text-sm font-medium text-gray-600'>{message.result?.summary?.valueGeneration}</span>
-                            </div>
-                            </div>
-                            </div>
-
-                            {/**AI findings and metric evaluation */}
-                            <h3 className='text-lg font-bold text-blue-900'> Ai analysis and Suggestion</h3>
-                           <div className='flex justify-between gap-3'>
-                            <div className='flex flex-col gap-4'>
-                          <div className="flex flex-col gap-2">
-  <h3 className="font-bold text-md">Metrics</h3>
-
-  {message.result?.AI.metrics &&
-    Object.entries(message.result.AI.metrics).map(([key, value]) => (
-      <div key={key} className="flex flex-col">
-        <span className="text-sm font-semibold text-gray-800">{key}</span>
-        <span className="text-sm text-gray-600">{value}</span>
-      </div>
-    ))}
-</div>
-
-                            <div className='flex flex-col'>
-                            <h3 className='font-bold text-md'>Why you should Invest</h3>
-                            <span className='text-sm font-medium text-gray-600'>{message.result?.AI.whyinvest}</span>
-                            </div>
-
-                            <div className='flex flex-col'>
-                            <h3 className='font-bold text-md'>How to Invest</h3>
-                            <span className='text-sm font-medium text-gray-600'>{message.result?.AI.howtoinvest}</span>
-                            </div>
-
-                            <div className='flex flex-col'>
-                            <h3 className='font-bold text-md'>Visit Platform</h3>
-                            <span className='text-sm text-purple-600'>
-                              <Link href={message.result?.projectPlatforms?.website || '#'}>
-                              <button className='underline'>
-                                  {message.result?.projectPlatforms?.website}
-                                </button>                               
-                              </Link>
-
-                              </span>
-                            </div>
-
-                            </div>
-                            </div>
-                          </div>
-                           : 
-                           <p>{message.content}</p>
-                           }
-                        </div>
-                        <p className={`text-xs mt-2 ${
-                          message.type === 'user' ? 'text-blue-100' : 'text-gray-400'
-                        }`}>
-                          {message.timestamp.toLocaleTimeString()}
-                        </p>
-                      </div>
-
-                    </div>
-                  </div>
-                ))}
-
-                {/* Loading indicator */}
-                {isAnalyzing && (
-                  <div className="flex justify-start">
-                    <div className="flex space-x-3">
-                      <div className="w-8 h-8 rounded-full bg-blue-500 flex items-center justify-center shadow-lg">
-                        <Bot className="w-4 h-4 text-white" />
-                      </div>
-                      <div className="bg-white border border-gray-200 rounded-2xl px-4 py-3 shadow-lg">
-                        <div className="flex items-center space-x-2">
-                          <div className="flex space-x-1">
-                            <div className="w-2 h-2 bg-blue-500 rounded-full animate-bounce"></div>
-                            <div className="w-2 h-2 bg-blue-500 rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>
-                            <div className="w-2 h-2 bg-blue-500 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
-                          </div>
-                          <span className="text-sm text-gray-600">Analyzing documents...</span>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                )}
-                
-                <div ref={messagesEndRef} />
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Fixed Bottom Input Section */}
-      <div className="flex-shrink-0 bg-white/95 backdrop-blur-md border-t border-gray-200 p-4">
-        <div className="max-w-7xl mx-auto flex flex-col space-y-4">
+    <>
+      <div className="min-h-screen relative overflow-hidden bg-black">
+        {/* Animated Network Background */}
+        <div className="absolute inset-0 bg-white">
+          {/* Grid Pattern */}
+          <div 
+            className="absolute inset-0 opacity-10"
+            style={{
+              backgroundImage: `
+                linear-gradient(rgba(0, 255, 136, 0.1) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(0, 255, 136, 0.1) 1px, transparent 1px)
+              `,
+              backgroundSize: '50px 50px'
+            }}
+          ></div>
           
-          {/* Show uploaded files if any */}
-          {uploadedFiles.length > 0 && (
-            <div className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl p-4 border border-blue-200">
-              <div className="flex items-center justify-between mb-3">
-                <p className="text-sm font-medium text-blue-900">
-                  Uploaded Files ({uploadedFiles.length})
-                </p>
-                <button
-                  onClick={clearAllFiles}
-                  className="text-xs text-red-600 hover:text-red-800 transition-colors"
+          {/* Animated Grid Lines */}
+          <div 
+            className="absolute inset-0 opacity-5"
+            style={{
+              backgroundImage: `
+                linear-gradient(rgba(0, 255, 136, 0.2) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(0, 255, 136, 0.2) 1px, transparent 1px)
+              `,
+              backgroundSize: '100px 100px',
+              animation: 'gridMove 20s linear infinite'
+            }}
+          ></div>
+        </div>
+
+        {/* Network Connections */}
+        <div className="absolute inset-0 overflow-hidden">
+          <svg className="absolute inset-0 w-full h-full" style={{ filter: 'blur(0.5px)' }}>
+            {/* Animated network lines */}
+            <defs>
+              <linearGradient id="lineGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" stopColor="rgba(0, 255, 136, 0.1)" />
+                <stop offset="50%" stopColor="rgba(0, 255, 136, 0.3)" />
+                <stop offset="100%" stopColor="rgba(0, 255, 136, 0.1)" />
+              </linearGradient>
+            </defs>
+            
+            <g className="animate-pulse">
+              <line x1="10%" y1="20%" x2="90%" y2="30%" stroke="url(#lineGradient)" strokeWidth="1" opacity="0.6" />
+              <line x1="20%" y1="10%" x2="80%" y2="70%" stroke="url(#lineGradient)" strokeWidth="1" opacity="0.4" />
+              <line x1="30%" y1="80%" x2="70%" y2="20%" stroke="url(#lineGradient)" strokeWidth="1" opacity="0.5" />
+              <line x1="5%" y1="60%" x2="95%" y2="40%" stroke="url(#lineGradient)" strokeWidth="1" opacity="0.3" />
+            </g>
+            
+            {/* Network nodes */}
+            <circle cx="15%" cy="25%" r="2" fill="rgba(255, 187, 0, 0.98)" className="animate-pulse" />
+            <circle cx="85%" cy="35%" r="2" fill="rgba(255, 187, 0, 0.98)" className="animate-pulse" style={{ animationDelay: '1s' }} />
+            <circle cx="25%" cy="15%" r="2" fill="rgba(255, 187, 0, 0.98)" className="animate-pulse" style={{ animationDelay: '2s' }} />
+            <circle cx="75%" cy="75%" r="2" fill="rgba(255, 187, 0, 0.98)" className="animate-pulse" style={{ animationDelay: '3s' }} />
+          </svg>
+        </div>
+
+        {/* Glowing Orbs */}
+        <div className="absolute inset-0 overflow-hidden">
+          <div 
+            className="absolute top-1/4 left-1/4 w-96 h-96 bg-gradient-to-br from-orange-500/10 to-orange-400/5 rounded-full blur-3xl"
+            style={{
+              animation: 'float 15s ease-in-out infinite'
+            }}
+          ></div>
+          <div 
+            className="absolute top-3/4 right-1/4 w-80 h-80 bg-gradient-to-br from-orange-500/8 to-gray-400/5 rounded-full blur-3xl"
+            style={{
+              animation: 'float 12s ease-in-out infinite 3s'
+            }}
+          ></div>
+          <div 
+            className="absolute top-1/2 left-3/4 w-64 h-64 bg-gradient-to-br from-purple-500/10 to-pink-400/5 rounded-full blur-3xl"
+            style={{
+              animation: 'float 18s ease-in-out infinite 6s'
+            }}
+          ></div>
+        </div>
+
+        {/* Header */}
+        <header 
+          className={`fixed top-4 left-4 right-4 z-50 transition-all duration-500 ease-in-out ${
+            isScrolled 
+              ? 'bg-white' 
+              : 'bg-white'
+          } rounded-2xl`}
+        >
+          <div className="w-full mx-auto px-6 lg:px-20">
+            <div className="flex justify-between items-center">
+              {/* Logo */}
+              <div className="flex items-center space-x-1">
+                 <div 
+                  className={`bg-gradient-to-br from-orange-500 to-orange-400 rounded-xl flex items-center justify-center transition-all duration-300 ${
+                    isScrolled ? 'w-8 h-8' : 'w-10 h-10'
+                  }`}
                 >
-                  Clear All
+                  <span className="text-white font-bold text-xl">O</span>
+                </div>
+                <span 
+                  className={`font-bold bg-orange-500 bg-clip-text text-transparent transition-all duration-300 ${
+                    isScrolled ? 'text-lg' : 'text-xl'
+                  }`}
+                >
+                  RIVA
+                </span>
+              </div>
+
+              {/* Desktop Navigation */}
+              <nav className="hidden lg:flex items-center space-x-8">
+                {/* {mobileNav.map((item, index) => (
+                  <div key={item.name} className='flex justify-start gap-3 items-center hover:translate-x-2 transform hover:text-emerald-400 transition-all duration-300 cursor-pointer' onClick={() => handleNavigateToExternalSite(item.href)}>
+                    <item.icon size={18} className='text-gray-400'/>
+                    <span className="text-gray-400 font-medium hover:text-emerald-400 transition-colors duration-300">
+                      {item.name}
+                    </span>
+                  </div>
+                ))} */}
+              </nav>
+
+              {/* Desktop CTA Buttons */}
+              <div className="hidden lg:flex items-center space-x-4">
+                <button 
+                  onClick={() => handleNavigation('/app')}
+                  className={`bg-gradient-to-r from-orange-600 to-orange-500 hover:from-orange-500 hover:to-orange-400 text-black rounded-xl font-semibold transition-all duration-300 transform hover:scale-105 hover:shadow-lg hover:shadow-emerald-500/25 ${
+                    isScrolled ? 'px-4 py-2 text-sm' : 'px-6 py-3 text-white'
+                  }`}
+                >
+                  Get Started
                 </button>
               </div>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                {uploadedFiles.map((file) => (
-                  <div key={file.id} className="flex items-center justify-between bg-white rounded-lg p-3 group hover:bg-blue-50 transition-colors border shadow-sm">
-                    <div className="flex items-center space-x-3 flex-1 min-w-0">
-                      <FileText className="w-4 h-4 text-blue-500 flex-shrink-0" />
-                      <div className="flex-1 min-w-0">
-                        <span className="text-sm text-blue-800 truncate font-medium block">{file.name}</span>
-                        <span className="text-xs text-blue-600">({formatFileSize(file.size)})</span>
-                      </div>
-                    </div>
-                    <button
-                      onClick={() => handleRemoveFile(file.id)}
-                      className="ml-2 p-1 rounded-full hover:bg-red-100 transition-colors opacity-0 group-hover:opacity-100"
-                      title="Remove file"
-                    >
-                      <Trash className="w-4 h-4 text-red-500" />
-                    </button>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
 
-          {/* Upload Area */}
-          <div 
-            className={`border-2 border-dashed rounded-xl p-6 text-center transition-all cursor-pointer ${
-              dragActive 
-                ? 'border-blue-400 bg-blue-50' 
-                : 'border-blue-200 hover:border-blue-300 hover:bg-blue-50/50'
-            }`}
-            onClick={() => fileInputRef.current?.click()}
-            onDragEnter={handleDrag}
-            onDragLeave={handleDrag}
-            onDragOver={handleDrag}
-            onDrop={handleDrop}
-          >
-            <Upload className={`w-8 h-8 mx-auto mb-2 transition-all ${
-              dragActive ? 'text-blue-500 scale-110' : 'text-blue-400'
-            }`} />
-            <p className="text-sm text-gray-700 mb-1 font-medium">
-              {dragActive ? 'Drop files here' : 'Drop files here or click to upload'}
-            </p>
-            <p className="text-xs text-gray-500">PDF, DOC, DOCX up to 10MB each</p>
-          </div>
-
-          {/* Action Buttons */}
-          <div className="flex flex-col sm:flex-row gap-3">
-            <button
-              onClick={handleRequest}
-              disabled={isAnalyzing || uploadedFiles.length === 0}
-              className={`flex-1 sm:flex-none px-6 py-3 rounded-xl font-medium transition-all duration-200 ${
-                isAnalyzing || uploadedFiles.length === 0
-                  ? 'bg-gray-200 text-gray-400 cursor-not-allowed'
-                  : 'bg-blue-500 hover:from-blue-700 hover:to-blue-700 text-white shadow-lg hover:shadow-xl transform hover:scale-105'
-              }`}
-            >
-              {isAnalyzing ? (
-                <div className="flex items-center justify-center space-x-2">
-                  <div className="w-4 h-4 border-2 border-gray-400 border-t-transparent rounded-full animate-spin"></div>
-                  <span>Analyzing...</span>
-                </div>
-              ) : (
-                'Analyze Documents'
-              )}
-            </button>
-
-            {/* Chat Input */}
-            <div className="flex-1 flex items-center space-x-3 bg-white rounded-xl border border-gray-200 shadow-lg p-3">
-              <textarea
-                ref={inputRef}
-                value={inputMessage}
-                onChange={handleInputChange}
-                onKeyPress={handleKeyPress}
-                placeholder="Ask questions about your documents..."
-                className="flex-1 resize-none border-0 outline-none text-sm leading-6 max-h-[80px] min-h-[24px] placeholder-gray-400 text-gray-900"
-                rows={1}
-                disabled={isAnalyzing}
-              />
+              {/* Mobile Menu Button */}
               <button
-                onClick={() => {
-                  if (inputMessage.trim()) {
-                    const userMessage: Message = {
-                      id: Date.now(),
-                      result: null,
-                      type: 'user',
-                      content: inputMessage,
-                      timestamp: new Date()
-                    };
-                    setMessages(prev => [...prev, userMessage]);
-                    setInputMessage('');
-                    
-                    setTimeout(() => {
-                      const botResponse: Message = {
-                        id: Date.now() + 100,
-                        result: null,
-                        type: 'bot',
-                        content: "I can help you analyze documents. Please upload your research papers or white papers using the upload area above, then click 'Analyze Documents'.",
-                        timestamp: new Date()
-                      };
-                      setMessages(prev => [...prev, botResponse]);
-                    }, 1000);
-                  }
-                }}
-                disabled={!inputMessage.trim()}
-                className={`p-2 rounded-lg transition-all duration-200 ${
-                  !inputMessage.trim()
-                    ? 'bg-gray-200 text-gray-400 cursor-not-allowed'
-                    : 'bg-blue-600 hover:bg-blue-700 text-white shadow-md hover:shadow-lg transform hover:scale-105'
-                }`}
+                onClick={toggleMobileMenu}
+                className="lg:hidden p-2 rounded-xl hover:bg-gray-800/50 transition-all duration-300"
               >
-                <Send className="w-4 h-4" />
+                {isMobileMenuOpen ? (
+                  <X className="w-6 h-6 text-gray-400" />
+                ) : (
+                  <Menu className="w-6 h-6 text-gray-400" />
+                )}
               </button>
             </div>
+
+            {/* Mobile Menu */}
+            <div 
+              className={`lg:hidden overflow-hidden transition-all duration-500 ease-in-out ${
+                isMobileMenuOpen ? 'max-h-96 opacity-100 mt-6' : 'max-h-0 opacity-0'
+              }`}
+            >
+              <div className="border-t border-gray-800 pt-6">
+                <nav className="flex flex-col space-y-4">
+                  {/* {mobileNav.map((item, index) => (
+                    <div key={item.name} className='flex justify-start gap-3 items-center cursor-pointer' onClick={() => handleNavigateToExternalSite(item.href)}>
+                      <item.icon size={18} className='text-gray-400'/>
+                      <span className="text-gray-400 hover:text-emerald-400 transition-all duration-300 font-medium hover:translate-x-2 transform">
+                        {item.name}
+                      </span>
+                    </div>
+                  ))} */}
+                </nav>
+              </div>
+            </div>
           </div>
+        </header>
+
+        {/* Hero Section */}
+        <div className="pt-32 relative z-10 justify-center items-center">
+          <section className="min-h-screen/2 px-4 py-20 flex items-center">
+            <div className="px-20 mx-auto relative">
+              <div className="flex flex-col items-center">
+                {/* Left Column - Text Content */}
+                <div className="space-y-8 justify-center items-center">
+
+                  {/* Main Heading */}
+                  <div className='flex flex-col gap-y-2 justify-center items-center'>
+                  <label className='font-bold text-2xl'>Enter Token name or official site</label>
+                      <input className='py-2 px-7 rounded-md border border-orange-500' placeholder='enter name of token or link to official site w-full'/>
+                  </div>
+
+                  <p className='text-center'> Or </p>
+
+                     {/* <div className='flex flex-col gap-y-2'>
+                  <label className='font-bold text-2xl'>Upload White paper</label>
+                      <input className='py-2 px-7 rounded-md border border-orange-500' placeholder='enter name of token or link to official site w-full'/>
+                  </div> */}
+
+                    <div 
+                    className="flex items-center justify-center"
+                    style={{
+                      animation: 'fadeInUp 1s ease-out 0.8s both'
+                    }}
+                  >
+                    <button 
+                      onClick={() => handleNavigation('/app')}
+                      className="group bg-gradient-to-r  gap-x-3 from-orange-600 to-orange-500 hover:from-orange-500 hover:to-orange-400 hover:text-white text-white px-8 py-4 rounded-2xl text-lg font-semibold transition-all duration-300 transform hover:scale-105 hover:shadow-2xl hover:shadow-emerald-500/25 hover:text-white flex items-center"
+                    >
+                        <File size={20} className='text-white animate-spin'/>
+                        <>
+                        Upload White paper
+                        </>
+                    </button>
+                  </div>
+
+
+                   <div 
+                    className="flex items-center justify-center"
+                    style={{
+                      animation: 'fadeInUp 1s ease-out 0.8s both'
+                    }}
+                  >
+                    <button 
+                      onClick={() => handleNavigation('/app')}
+                      className="group bg-gradient-to-r  gap-x-3 from-orange-600 to-orange-500 hover:from-orange-500 hover:to-orange-400 hover:text-white text-white px-8 py-4 rounded-2xl text-lg font-semibold transition-all duration-300 transform hover:scale-105 hover:shadow-2xl hover:shadow-emerald-500/25 hover:text-white flex items-center"
+                    >
+                        <ArrowRight size={20} className='text-white'/>
+                        <>
+                        Proceed
+                        </>
+                    </button>
+                  </div>
+
+                
+                </div>
+
+                {/* Right Column - Trading Dashboard Mock */}
+                <div className="relative">
+                  {/* Floating Elements */}
+                  <div 
+                    className="absolute -top-10 -left-10 w-20 h-20 bg-emerald-500/10 rounded-full opacity-60 blur-sm"
+                    style={{
+                      animation: 'float 6s ease-in-out infinite'
+                    }}
+                  ></div>
+                  <div 
+                    className="absolute top-20 -right-8 w-16 h-16 bg-cyan-500/10 rounded-full opacity-40 blur-sm"
+                    style={{
+                      animation: 'float 8s ease-in-out infinite 2s'
+                    }}
+                  ></div>
+                  <div 
+                    className="absolute -bottom-10 left-10 w-12 h-12 bg-purple-500/15 rounded-full opacity-50 blur-sm"
+                    style={{
+                      animation: 'float 7s ease-in-out infinite 1s'
+                    }}
+                  ></div>
+
+                  {/* Dashboard Preview */}
+                  <div 
+                    className="bg-transparent rounded-3xl p-8 relative overflow-hidden"
+                    style={{
+                      animation: 'slideInUp 1.2s ease-out 1s both'
+                    }}
+                  >
+                    {/* Glowing border effect */}
+                    <div className="absolute inset-0 bg-white rounded-3xl"></div>
+                    
+                    {/* Mock trading interface */}
+                    <div className="relative z-10">
+                      
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </section>
         </div>
+
+        {/* Footer */}
+        {/* <footer className="bg-transparent relative z-10">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+            <div className="text-center">
+              <div className="flex justify-center space-x-8 mb-8">
+                {socialLinks.map((social) => {
+                  const IconComponent = social.icon;
+                  return (
+                    <a 
+                      key={social.label}
+                      href={social.href} 
+                      className="text-gray-500 hover:text-orange-500 transition-colors duration-300 cursor-pointer hover:scale-110 transform"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      aria-label={social.label}
+                    >
+                      <IconComponent className="w-6 h-6" />
+                    </a>
+                  );
+                })}
+              </div>
+              
+              <div className="pt-8">
+                <p className="text-gray-600 text-sm">
+                  © 2025 Oriva. All rights reserved. Trading involves risk and may not be suitable for all investors.
+                </p>
+              </div>
+            </div>
+          </div>
+        </footer> */}
       </div>
-    </div>
+
+      <style jsx>{`
+        @keyframes slideIn {
+          from {
+            opacity: 0;
+            transform: translateY(-10px);
+          }
+          to {
+            opacity: 1;
+            transform: translateY(0);
+          }
+        }
+        
+        @keyframes fadeInUp {
+          from {
+            opacity: 0;
+            transform: translateY(30px);
+          }
+          to {
+            opacity: 1;
+            transform: translateY(0);
+          }
+        }
+
+        @keyframes slideInUp {
+          from {
+            opacity: 0;
+            transform: translateY(60px);
+          }
+          to {
+            opacity: 1;
+            transform: translateY(0);
+          }
+        }
+
+        @keyframes float {
+          0%, 100% {
+            transform: translateY(0px) rotate(0deg);
+          }
+          33% {
+            transform: translateY(-20px) rotate(2deg);
+          }
+          66% {
+            transform: translateY(-10px) rotate(-1deg);
+          }
+        }
+
+        @keyframes gridMove {
+          0% {
+            transform: translate(0, 0);
+          }
+          100% {
+            transform: translate(50px, 50px);
+          }
+        }
+        
+        .animate-slideIn {
+          animation: slideIn 0.3s ease-out forwards;
+        }
+      `}</style>
+    </>
   );
 };
 
-export default AnalysisPage;
+export default Web3TradingLanding;
