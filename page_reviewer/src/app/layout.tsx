@@ -13,8 +13,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "ravaa",
-  description: "Vet White paper for errors, logical fallacies and plagarisms",
+  title: "probe",
+  description: "Make Quicker, informed trade with Probe. Your Personal DYOR Agent",
 };
 
 export default function RootLayout({
