@@ -1,11 +1,13 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
+import { Geist_Mono,Poppins } from "next/font/google";
 import "./globals.css";
+import SolanaWalletProvider from '@/app/components/SolanaWalletProvider'
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
-  subsets: ["latin"],
-});
+const poppins = Poppins({
+  weight: ['400', '500', '600', '700'],
+  subsets: ['latin'],
+  display: 'swap',
+})
 
 const geistMono = Geist_Mono({
   variable: "--font-geist-mono",
@@ -13,7 +15,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "probe",
+  title: "integrity",
   description: "Make Quicker, informed trade with Probe. Your Personal DYOR Agent",
 };
 
@@ -25,9 +27,11 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
+        className={`${poppins.className} ${geistMono.variable} antialiased bg-[#0d1117] text-white`}
       >
-        {children}
+        <SolanaWalletProvider>
+          {children}
+        </SolanaWalletProvider>
       </body>
     </html>
   );
