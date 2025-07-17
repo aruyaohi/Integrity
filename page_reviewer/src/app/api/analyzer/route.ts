@@ -7,6 +7,8 @@ if (!apikey) {
   throw new Error('Groq API key is missing. Please set NEXT_PUBLIC_API_KEY in your .env.local file.');
 }
 
+console.log(apikey)
+
 interface ProjectData {
   answer: string;
   analysis?: string;

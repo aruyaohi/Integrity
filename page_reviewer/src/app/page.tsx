@@ -129,9 +129,9 @@ const Web3TradingLanding: React.FC = () => {
                 className="lg:hidden p-2 rounded-xl hover:bg-gray-200/50 transition-all duration-300"
               >
                 {isMobileMenuOpen ? (
-                  <X className="w-6 h-6 text-gray-600" />
+                  <X className="w-6 h-6 text-gray-50" />
                 ) : (
-                  <Menu className="w-6 h-6 text-gray-600" />
+                  <Menu className="w-6 h-6 text-gray-50" />
                 )}
               </button>
             </div>
@@ -179,8 +179,8 @@ const Web3TradingLanding: React.FC = () => {
 
         {/* Hero Section */}
         <div className="pt-32 relative z-10">
-          <section className="min-h-screen/2 px-4 py-20 flex items-center">
-            <div className="px-20 mx-auto relative">
+          <section className="min-h-screen/2 py-20 flex items-center">
+            <div className="px-10 mx-auto relative">
               <div className="flex flex-col gap-12 items-center justify-center">
                 {/* Left Column - Text Content */}
                 <div className='gap-2'>
