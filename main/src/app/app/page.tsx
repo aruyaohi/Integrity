@@ -4,7 +4,7 @@ import { useState} from "react";
 import { useWallet } from "@solana/wallet-adapter-react";
 import { WalletMultiButton } from '@solana/wallet-adapter-react-ui';
 import { useRouter } from 'next/navigation'; // or 'next/router' for older Next.js versions
-import { X, Menu, Clock, Coins, FolderOpen, Wallet, QrCode, User, HelpCircle, ChevronDown, ChevronRight, Bot, Pen, Bell, Search, Zap, Star, Settings, Plus } from "lucide-react";
+import { X, Menu, Clock, Coins, FolderOpen, Wallet, QrCode, User, HelpCircle, ChevronDown, ChevronRight, Bot, Pen, Bell,} from "lucide-react";
 import WatchList from "../components/app/watchlist";
 import HomePage from "../components/app/home";
 
@@ -27,10 +27,6 @@ const HomeComponent: React.FC = () => {
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState<boolean>(false);
     const [activeMenuItem, setActiveMenuItem] = useState<string>('ChatBot');
     const [expandedMenu, setExpandedMenu] = useState<string | null>(null);
-
-    // Header state
-    const [queryPoints, setQueryPoints] = useState<number>(2500);
-    const [searchQuery, setSearchQuery] = useState<string>('');
 
     const toggleMobileMenu = (): void => {
         setIsMobileMenuOpen(!isMobileMenuOpen);
@@ -255,23 +251,9 @@ const HomeComponent: React.FC = () => {
                                 </div> */}
 
                                 {/* Mobile search button */}
-                                <button className="p-2 bg-[#3a3a3a] rounded-lg border border-gray-600 hover:bg-[#4a4a4a] transition-colors md:hidden">
-                                    <Search className="w-4 h-4 text-gray-400" />
+                                <button onClick={toggleMobileMenu} className="p-2 bg-[#3a3a3a] rounded-lg border border-gray-600 hover:bg-[#4a4a4a] transition-colors md:hidden">
+                                    <Menu className="w-4 h-4 text-gray-400" />
                                 </button>
-                            </div>
-                        </div>
-
-                        {/* Mobile Search Bar */}
-                        <div className="mt-4 md:hidden">
-                            <div className="relative">
-                                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
-                                <input
-                                    type="text"
-                                    placeholder="Search tokens, projects, wallets..."
-                                    value={searchQuery}
-                                    onChange={(e) => setSearchQuery(e.target.value)}
-                                    className="bg-[#3a3a3a] border border-gray-600 rounded-lg pl-10 pr-4 py-2 text-white placeholder-gray-400 focus:outline-none focus:border-green-500 focus:ring-1 focus:ring-green-500 w-full"
-                                />
                             </div>
                         </div>
                     </header>
