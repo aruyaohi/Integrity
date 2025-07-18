@@ -35,6 +35,7 @@ const Web3TradingLanding: React.FC = () => {
       setTimeout(() => {
         router.push('/app');
       }, 1000);
+      router.push('/')
     }
   }, [connected, publicKey, router]);
 
@@ -48,9 +49,9 @@ const Web3TradingLanding: React.FC = () => {
   };
 
   const socialLinks: SocialLink[] = [
-    { icon: Github, href: 'https://github.com/your-project', label: 'GitHub' },
-    { icon: MessageCircle, href: 'https://t.me/your-project', label: 'Telegram' },
-    { icon: Twitter, href: 'https://twitter.com/your-project', label: 'Twitter' },
+    { icon: Github, href: '#', label: 'GitHub' },
+    { icon: MessageCircle, href: '#', label: 'Telegram' },
+    { icon: Twitter, href: '#', label: 'Twitter' },
   ];
 
   const toggleMobileMenu = (): void => {
@@ -102,13 +103,6 @@ const Web3TradingLanding: React.FC = () => {
                         {formatAddress(publicKey?.toBase58() || '')}
                       </span>
                     </div>
-                    <button 
-                      onClick={() => router.push('/app')}
-                      className="bg-gradient-to-r from-green-600 to-green-500 hover:from-green-500 hover:to-green-400 text-white px-4 py-2 rounded-xl font-semibold transition-all duration-300 transform hover:scale-105 hover:shadow-lg hover:shadow-green-500/25 flex items-center space-x-2"
-                    >
-                      <span>Launch App</span>
-                      <ArrowRight className="w-4 h-4" />
-                    </button>
                     <button
                       onClick={disconnect}
                       className="text-gray-400 hover:text-red-400 transition-colors duration-300 text-sm"

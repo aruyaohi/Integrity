@@ -1,18 +1,48 @@
 import { NextRequest, NextResponse } from 'next/server';
-import pdfParse from 'pdf-parse';
+import pdfParse from 'pdf-parse'
 
-// Process API key from environment variable
-const apikey = process.env.NEXT_PUBLIC_API_KEY;
-if (!apikey) {
-  throw new Error('Groq API key is missing. Please set NEXT_PUBLIC_API_KEY in your .env.local file.');
-}
 
-console.log(apikey)
+//process api key from environment variable
+// const apikey = process.env.NEXT_PUBLIC_API_KEY
+// if(!apikey){
+//    throw new Error('Gemini API key is missing. Please set NEXT_PUBLIC_API_KEY in your .env.local file.');
+// }
+
+// console.log(apikey)
+
 
 interface ProjectData {
-  answer: string;
-  analysis?: string;
+  icon: string
+  projectName: string,
+  about?:{
+    problem_solution: {
+      feasibility: boolean,
+      content: string,
+    },
+    technology: {
+      practical: boolean,
+      content: string,
+    },
+    founders : {
+      name: string,
+      handle: string,
+    }
+  },
+  marketdata? : {
+    price: string,
+  }
+  whitepaper? : {
+    summary:string ,
+    errors: string,
+    investment_worthy: {
+      status: boolean,
+      reason: string,
+    },
+  },
+
 }
+
+
 
 // Helper function to extract text from PDF buffer
 async function extractTextFromPDF(buffer: Buffer): Promise<string> {
@@ -25,48 +55,58 @@ async function extractTextFromPDF(buffer: Buffer): Promise<string> {
   }
 }
 
-async function analyzeDocumentWithGroq(text: string | null, filename: string | null, context: string): Promise<ProjectData> {
-  let prompt: string;
 
-  if (text && filename) {
-    // Case 1: File + Prompt (whitepaper analysis)
-    prompt = `
-You are an expert Blockchain Expert, an Agent for DYOR on the Solana Blockchain. Analyze the following whitepaper and provide answers based on the context provided.
+// Helper function to analyze document with Google AI
+async function analyzeDocumentWithGroq(text: string, filename: string) {
+const prompt = `
+You are an expert white paper auditor for investors. Analyze the following project whitepaper and provide a structured JSON response with:
 
-Context/Question: ${context}
+- keep summary very short
+{
+  "icon" : "..." //Link to icon
+  "projectName": "...";
+  "about": "...";
+  "summary": //each and everyone of this summary should have about 100 - 200 words of useful information
+  {
+  coreInnovation: "...";
+  businessModel: "...";
+  valueGeneration: "..." // How value is generated. 
+  };
+  "AI" : {
+    metrics: "..." // Provide metric for analysis based on white paper, this should be reason for whyinvest sugesstion
+    whyinvest: "..." // Provide accurate reason why investor should invest based on up-to-date information
+    howtoinvest: "..." // Provide accurate information to the project investment process
+  }
+  };
+  projectPlatforms?:   
+  {
+  website?: "...";
+  socials?: {
+    X?: "...";
+    Discord?: "...";
+    telegram?: "...";
+    other?: "...";
+  };
+  articles?: string[]; //
+};
+  contactFounder?: string;
+  achievements?: string[];
+}
 
 Document: "${filename}"
 
 Content:
-${text.substring(0, 3000)}
+${text.substring(0, 2000)}
 
-IMPORTANT: You must respond with ONLY valid JSON in the exact format below. Do not include any markdown formatting, code blocks, or additional text outside the JSON structure.
 
-{
-  "answer": "Your detailed analysis here with just one or two emojis and symbols",
-  "analysis": "Your whitepaper analysis focusing on investment worthiness"
-}
+**Important** Result should lay more emphasis on determining if project is investment worthy and why!!
 
-Focus on determining if the project is investment worthy and why. Keep answer brief, not more than 2000 words. Use symbols and emojis within the JSON string values for better readability.
+
+Respond only in valid JSON.
 `;
-  } else {
-    // Case 2: Prompt only (general blockchain questions)
-    prompt = `
-You are an expert Blockchain Expert, an Agent for DYOR on the Solana Blockchain. Answer the following question or provide information based on the context provided.
 
-Question/Context: ${context}
 
-IMPORTANT: You must respond with ONLY valid JSON in the exact format below. Do not include any markdown formatting, code blocks, or additional text outside the JSON structure.
-
-{
-  "answer": "Your detailed response here with emojis and symbols"
-}
-
-Focus on providing valuable blockchain/Solana insights. Keep answer brief, not more than 2000 words. Use symbols and emojis within the JSON string values for better readability.
-`;
-  }
-
-  const res = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+const res = await fetch('https://api.groq.com/openai/v1/chat/completions', {
     method: 'POST',
     headers: {
       'Authorization': `Bearer ${process.env.NEXT_PUBLIC_API_KEY}`,
@@ -87,107 +127,65 @@ Focus on providing valuable blockchain/Solana insights. Keep answer brief, not m
   const data = await res.json();
   const content = data.choices?.[0]?.message?.content;
 
-  console.log("Groq response data:", data);
-  console.log("Groq content:", content);
-
   if (!content) {
     throw new Error('Groq returned no message content');
   }
 
   try {
-    // More aggressive cleaning of the response
-    let cleanContent = content.trim();
-    
-    // Remove markdown code blocks
-    cleanContent = cleanContent.replace(/```json\s*\n?|```\s*\n?/g, '');
-    
-    // Remove any leading/trailing whitespace
-    cleanContent = cleanContent.trim();
-    
-    // Try to find JSON content between curly braces
-    const jsonMatch = cleanContent.match(/\{[\s\S]*\}/);
-    if (jsonMatch) {
-      cleanContent = jsonMatch[0];
-    }
-    
-    // Additional cleanup for common issues
-    cleanContent = cleanContent.replace(/^[^{]*/, ''); // Remove everything before first {
-    cleanContent = cleanContent.replace(/[^}]*$/, '}'); // Ensure it ends with }
-    
-    return JSON.parse(cleanContent);
+    return JSON.parse(content);
   } catch (e) {
     console.error('Raw Groq output:', content);
-    console.error('JSON parse error:', e);
-    
-    // Enhanced fallback strategy
-    try {
-      // Try to extract JSON more aggressively
-      const jsonStart = content.indexOf('{');
-      const jsonEnd = content.lastIndexOf('}');
-      
-      if (jsonStart !== -1 && jsonEnd !== -1 && jsonEnd > jsonStart) {
-        const extractedJson = content.substring(jsonStart, jsonEnd + 1);
-        return JSON.parse(extractedJson);
-      }
-    } catch (fallbackError) {
-      console.error('Fallback JSON parse also failed:', fallbackError);
-    }
-    
-    // Last resort: create a structured response from the raw content
-    console.warn('Creating fallback response due to JSON parsing failure');
-    return {
-      answer: content.replace(/[^\x00-\x7F]/g, ''), // Remove non-ASCII characters that might cause issues
-      analysis: text ? "Analysis could not be properly formatted due to response format issues" : undefined
-    };
+    console.log(e)
+    throw new Error('Failed to parse Groq response as JSON');
   }
 }
+
+
+//Analyze function ends here
+
 
 export async function POST(request: NextRequest) {
   try {
     // Parse the multipart form data
     const formData = await request.formData();
-    console.log('Form data received:', formData);
-
     // Get metadata
     const fileCount = parseInt(formData.get('fileCount') as string || '0');
-    const customPrompt = formData.get('prompt') as string || '';
+    // const fileNames = JSON.parse(formData.get('fileNames') as string || '[]');
+    // const analysisType = formData.get('analysisType') as string || 'comprehensive';
 
-    // Validate that we have either files or a prompt
-    if (fileCount === 0 && !customPrompt.trim()) {
-      return NextResponse.json({
-        success: false,
-        error: 'Please provide either a PDF file for analysis or a prompt for general blockchain questions.'
+    if (fileCount === 0) {
+      return NextResponse.json({ 
+        success: false, 
+        error: 'No files provided for analysis' 
       }, { status: 400 });
     }
 
-    // Case 1: File + Prompt (whitepaper analysis)
-    if (fileCount > 0) {
-      console.log(`Processing ${fileCount} file(s) with prompt: "${customPrompt}"`);
 
-      // Process the first file (assuming single file for now)
-      const file = formData.get('file_0') as File;
+  const analysisResults: NonNullable<ProjectData>[] = [];
+
+    // Process each uploaded file    
+    for (let i = 0; i < fileCount; i++) {
+      const file = formData.get(`file_${i}`) as File;
       
       if (!file) {
-        return NextResponse.json({
-          success: false,
-          error: 'No file found in the request'
-        }, { status: 400 });
+        console.warn(`File ${i} not found in form data`);
+        continue;
       }
 
       // Validate file type
       if (!file.type.includes('pdf') && !file.name.toLowerCase().endsWith('.pdf')) {
-        return NextResponse.json({
-          success: false,
-          error: `File ${file.name} is not a PDF. Only PDF files are supported.`
+        return NextResponse.json({ 
+          success: false, 
+          error: `File ${file.name} is not a PDF. Only PDF files are supported.` 
         }, { status: 400 });
       }
 
       // Validate file size (10MB limit)
       const maxSize = 10 * 1024 * 1024; // 10MB
       if (file.size > maxSize) {
-        return NextResponse.json({
-          success: false,
-          error: `File ${file.name} exceeds 10MB size limit`
+        return NextResponse.json({ 
+          success: false, 
+          error: `File ${file.name} exceeds 10MB size limit` 
         }, { status: 400 });
       }
 
@@ -200,78 +198,48 @@ export async function POST(request: NextRequest) {
         const extractedText = await extractTextFromPDF(buffer);
         
         if (!extractedText.trim()) {
-          return NextResponse.json({
-            success: false,
-            error: `Could not extract text from ${file.name}. The PDF might be image-based or corrupted.`
+          return NextResponse.json({ 
+            success: false, 
+            error: `Could not extract text from ${file.name}. The PDF might be image-based or corrupted.` 
           }, { status: 400 });
         }
 
         // Analyze the document with AI
-        const analysis = await analyzeDocumentWithGroq(extractedText, file.name, customPrompt || 'Analyze this whitepaper');
-        
-        console.log("Analysis result:", analysis);
-        
-        return NextResponse.json({
-          success: true,
-          message: `Successfully analyzed ${file.name}`,
-          data: analysis,
-          type: 'whitepaper_analysis'
-        });
+        const analysis = await analyzeDocumentWithGroq(extractedText, file.name);
+        if(analysis){
+            console.log(analysis)
+            analysisResults.push(analysis);
+        }
 
       } catch (fileError) {
         console.error(`Error processing file ${file.name}:`, fileError);
-        return NextResponse.json({
-          success: false,
-          error: `Failed to process file ${file.name}: ${fileError instanceof Error ? fileError.message : 'Unknown error'}`
+        return NextResponse.json({ 
+          success: false, 
+          error: `Failed to process file ${file.name}: ${fileError instanceof Error ? fileError.message : 'Unknown error'}` 
         }, { status: 500 });
       }
     }
 
-    // Case 2: Prompt only (general blockchain questions)
-    else if (customPrompt.trim()) {
-      console.log(`Processing prompt-only request: "${customPrompt}"`);
-
-      try {
-        // Analyze with just the prompt
-        const analysis = await analyzeDocumentWithGroq(null, null, customPrompt);
-        
-        console.log("Prompt analysis result:", analysis);
-        
-        return NextResponse.json({
-          success: true,
-          message: 'Successfully processed your blockchain question',
-          data: analysis,
-          type: 'prompt_analysis'
-        });
-
-      } catch (promptError) {
-        console.error('Error processing prompt:', promptError);
-        return NextResponse.json({
-          success: false,
-          error: `Failed to process prompt: ${promptError instanceof Error ? promptError.message : 'Unknown error'}`
-        }, { status: 500 });
-      }
-    }
-
-    // This shouldn't be reached due to earlier validation, but just in case
+    //Return successful analysis
     return NextResponse.json({
-      success: false,
-      error: 'Invalid request format'
-    }, { status: 400 });
+      success: true,
+      data: `Successfully analyzed ${fileCount} document(s)`,
+      analysis: analysisResults,
+    });
 
   } catch (error) {
     console.error('API Error:', error);
-    return NextResponse.json({
-      success: false,
-      error: error instanceof Error ? error.message : 'Internal server error'
+    return NextResponse.json({ 
+      success: false, 
+      error: error instanceof Error ? error.message : 'Internal server error' 
     }, { status: 500 });
   }
 }
 
 // Handle other HTTP methods
 export async function GET() {
-  return NextResponse.json({
-    success: false,
-    error: 'Method not allowed. Use POST to submit documents for analysis or ask blockchain questions.'
+  return NextResponse.json({ 
+    success: false, 
+    error: 'Method not allowed. Use POST to submit documents for analysis.' 
   }, { status: 405 });
 }
