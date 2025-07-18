@@ -1,36 +1,46 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+Integrity
+Integrity is a powerful decentralized application (DApp) designed to empower users with quicker, more informed decisions in their trading endeavors within the Solana ecosystem. By providing comprehensive analysis and a suite of tools, Integrity aims to be your personal DYOR (Do Your Own Research) agent.
 
-## Getting Started
+Features
+Integrity offers a growing set of features to assist your research and trading activities:
 
-First, run the development server:
+Chatbot (for Querying): Your interactive assistant for querying information and getting immediate insights. (Currently the only functional feature)
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+Watchlist: Track your favorite tokens, projects, and wallet activities, and receive valuable insights.
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Notes: Capture important chat insights, personal observations, and research notes in one convenient place.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+Alerts: Get notified on massive market changes or significant on-chain activities.
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+Scan: A tool designed to scan for potential rug pulls and other suspicious activities. (This feature might be merged with the Chatbot in the future)
 
-## Learn More
+Profile: Manage your personal settings and preferences within the DApp.
 
-To learn more about Next.js, take a look at the following resources:
+Comprehensive Analysis: Get in-depth insights covering:
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+Fundamentals: Understand the core value and health of assets.
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+Market Metrics: Analyze key market indicators and trends.
 
-## Deploy on Vercel
+On-chain Data: Dive into blockchain data for transparency and insights.
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+Risk Assessment: Evaluate potential risks associated with your trades.
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Personal DYOR Agent: Integrity acts as your dedicated research assistant, streamlining the information gathering process.
+
+Getting Started
+To access the full capabilities of Integrity, users are required to connect their Solana-compatible cryptocurrency wallet.
+
+Visit the Integrity website.
+
+Connect your preferred Solana wallet, such as Solflare or Phantom, when prompted.
+
+Once connected, you can start interacting with the available features, beginning with the Chatbot.
+
+Important Disclaimer
+Trading involves significant risk and may not be suitable for all investors. The information and tools provided by Integrity are for analytical purposes and should not be considered financial advice. Always conduct your own thorough research and consider your financial situation before making any investment decisions. Interacting with DApps and smart contracts carries inherent risks, including potential vulnerabilities.
+
+Contact
+For any inquiries or support, please refer to the contact information provided on the official website (if available) or join our community channels.
+
+© 2025 All Rights Reserved.
